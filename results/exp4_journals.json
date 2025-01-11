@@ -1,0 +1,105 @@
+{
+  "reference_now": "2025-01-24T12:00:00+00:00",
+  "profiles": {
+    "Mina (15, emotional, trendy, dyed yellow hair)": [
+      {
+        "date": "2025-01-24",
+        "title": "Scolded Mom Spending All",
+        "diary": "Today tested my patience. I keep coming back to scolded mom spending all allowance feel regretful. The anger of it still lingers. It reminded me of graduation ceremony celebration. I hope tomorrow feels a little lighter.\n\n#Spending #Allowance #Feel #Angry",
+        "visual_prompt": "soft anime illustration, a 15-year-old character, dyed yellow hair, no glasses, trendy fashion, vibrant city background, depicting scolded mom spending all allowance feel regretful, conveying angry emotion, tense dramatic lighting, stormy frustrated mood, cinematic composition, highly detailed.",
+        "episode": {
+          "text": "I was scolded by my mom for spending all my allowance, I feel regretful.",
+          "event": "scolded mom spending all allowance feel regretful",
+          "emotion": "angry",
+          "hashtags": [
+            "#Spending",
+            "#Allowance",
+            "#Feel",
+            "#Angry"
+          ],
+          "emotional_intensity": 0.88,
+          "valence": -1,
+          "title": "Scolded Mom Spending All"
+        },
+        "retrieved": [
+          "scolded mom spending all allowance feel regretful",
+          "graduation ceremony celebration"
+        ]
+      },
+      {
+        "date": "2025-01-24",
+        "title": "Car Splashed Puddle Water",
+        "diary": "Today tested my patience. I keep coming back to car splashed puddle water completely ruined favorite outfit. The anger of it still lingers. It reminded me of car splashed water ruined favorite outfit. I hope tomorrow feels a little lighter.\n\n#Splashed #Puddle #Water #Angry",
+        "visual_prompt": "soft anime illustration, a 15-year-old character, dyed yellow hair, no glasses, trendy fashion, vibrant city background, depicting car splashed puddle water completely ruined favorite outfit, conveying angry emotion, tense dramatic lighting, stormy frustrated mood, cinematic composition, highly detailed.",
+        "episode": {
+          "text": "A car splashed puddle water on me and completely ruined my favorite outfit!",
+          "event": "car splashed puddle water completely ruined favorite outfit",
+          "emotion": "angry",
+          "hashtags": [
+            "#Splashed",
+            "#Puddle",
+            "#Water",
+            "#Angry"
+          ],
+          "emotional_intensity": 0.96,
+          "valence": -1,
+          "title": "Car Splashed Puddle Water"
+        },
+        "retrieved": [
+          "car splashed puddle water completely ruined favorite outfit",
+          "car splashed water ruined favorite outfit"
+        ]
+      }
+    ],
+    "Jun (27, thoughtful, minimal, glasses)": [
+      {
+        "date": "2025-01-24",
+        "title": "Scolded Mom Spending All",
+        "diary": "Today tested my patience. I keep coming back to scolded mom spending all allowance feel regretful. The anger of it still lingers. It reminded me of graduation ceremony celebration. I hope tomorrow feels a little lighter.\n\n#Spending #Allowance #Feel #Angry",
+        "visual_prompt": "soft anime illustration, a 27-year-old character, short black hair, wearing glasses, minimal fashion, minimal nature background, depicting scolded mom spending all allowance feel regretful, conveying angry emotion, tense dramatic lighting, stormy frustrated mood, cinematic composition, highly detailed.",
+        "episode": {
+          "text": "I was scolded by my mom for spending all my allowance, I feel regretful.",
+          "event": "scolded mom spending all allowance feel regretful",
+          "emotion": "angry",
+          "hashtags": [
+            "#Spending",
+            "#Allowance",
+            "#Feel",
+            "#Angry"
+          ],
+          "emotional_intensity": 0.88,
+          "valence": -1,
+          "title": "Scolded Mom Spending All"
+        },
+        "retrieved": [
+          "scolded mom spending all allowance feel regretful",
+          "graduation ceremony celebration"
+        ]
+      },
+      {
+        "date": "2025-01-24",
+        "title": "Car Splashed Puddle Water",
+        "diary": "Today tested my patience. I keep coming back to car splashed puddle water completely ruined favorite outfit. The anger of it still lingers. It reminded me of car splashed water ruined favorite outfit. I hope tomorrow feels a little lighter.\n\n#Splashed #Puddle #Water #Angry",
+        "visual_prompt": "soft anime illustration, a 27-year-old character, short black hair, wearing glasses, minimal fashion, minimal nature background, depicting car splashed puddle water completely ruined favorite outfit, conveying angry emotion, tense dramatic lighting, stormy frustrated mood, cinematic composition, highly detailed.",
+        "episode": {
+          "text": "A car splashed puddle water on me and completely ruined my favorite outfit!",
+          "event": "car splashed puddle water completely ruined favorite outfit",
+          "emotion": "angry",
+          "hashtags": [
+            "#Splashed",
+            "#Puddle",
+            "#Water",
+            "#Angry"
+          ],
+          "emotional_intensity": 0.96,
+          "valence": -1,
+          "title": "Car Splashed Puddle Water"
+        },
+        "retrieved": [
+          "car splashed puddle water completely ruined favorite outfit",
+          "car splashed water ruined favorite outfit"
+        ]
+      }
+    ]
+  }
+}

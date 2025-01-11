@@ -1,0 +1,173 @@
+{
+  "reference_now": "2025-01-24T12:00:00+00:00",
+  "rankings": {
+    "balanced (1,1,1)": [
+      {
+        "event": "car splashed water ruined favorite outfit",
+        "S": 0.3288
+      },
+      {
+        "event": "family dinner with meat",
+        "S": 0.2839
+      },
+      {
+        "event": "bought groceries cooked pasta",
+        "S": 0.1125
+      },
+      {
+        "event": "took bus to work",
+        "S": 0.1088
+      },
+      {
+        "event": "reorganized closet did laundry",
+        "S": 0.0624
+      },
+      {
+        "event": "peaceful walk park sunset",
+        "S": 0.0396
+      },
+      {
+        "event": "lost beloved dog",
+        "S": 0.0282
+      },
+      {
+        "event": "argued with best friend",
+        "S": 0.0232
+      },
+      {
+        "event": "graduation ceremony celebration",
+        "S": 0.0108
+      },
+      {
+        "event": "anxious before final exam",
+        "S": 0.006
+      }
+    ],
+    "emotion-heavy (3,1,1)": [
+      {
+        "event": "car splashed water ruined favorite outfit",
+        "S": 0.4657
+      },
+      {
+        "event": "family dinner with meat",
+        "S": 0.4164
+      },
+      {
+        "event": "bought groceries cooked pasta",
+        "S": 0.1222
+      },
+      {
+        "event": "took bus to work",
+        "S": 0.1144
+      },
+      {
+        "event": "lost beloved dog",
+        "S": 0.0731
+      },
+      {
+        "event": "reorganized closet did laundry",
+        "S": 0.0684
+      },
+      {
+        "event": "peaceful walk park sunset",
+        "S": 0.0613
+      },
+      {
+        "event": "argued with best friend",
+        "S": 0.0533
+      },
+      {
+        "event": "graduation ceremony celebration",
+        "S": 0.0356
+      },
+      {
+        "event": "anxious before final exam",
+        "S": 0.0192
+      }
+    ],
+    "recall-heavy (1,3,1)": [
+      {
+        "event": "car splashed water ruined favorite outfit",
+        "S": 0.2112
+      },
+      {
+        "event": "family dinner with meat",
+        "S": 0.1529
+      },
+      {
+        "event": "bought groceries cooked pasta",
+        "S": 0.0657
+      },
+      {
+        "event": "took bus to work",
+        "S": 0.0646
+      },
+      {
+        "event": "reorganized closet did laundry",
+        "S": 0.0349
+      },
+      {
+        "event": "peaceful walk park sunset",
+        "S": 0.0176
+      },
+      {
+        "event": "lost beloved dog",
+        "S": 0.0097
+      },
+      {
+        "event": "argued with best friend",
+        "S": 0.007
+      },
+      {
+        "event": "graduation ceremony celebration",
+        "S": 0.0031
+      },
+      {
+        "event": "anxious before final exam",
+        "S": 0.0012
+      }
+    ],
+    "context-heavy (1,1,3)": [
+      {
+        "event": "car splashed water ruined favorite outfit",
+        "S": 0.3352
+      },
+      {
+        "event": "family dinner with meat",
+        "S": 0.3064
+      },
+      {
+        "event": "bought groceries cooked pasta",
+        "S": 0.1519
+      },
+      {
+        "event": "took bus to work",
+        "S": 0.1483
+      },
+      {
+        "event": "reorganized closet did laundry",
+        "S": 0.0871
+      },
+      {
+        "event": "peaceful walk park sunset",
+        "S": 0.0496
+      },
+      {
+        "event": "lost beloved dog",
+        "S": 0.0308
+      },
+      {
+        "event": "argued with best friend",
+        "S": 0.0288
+      },
+      {
+        "event": "graduation ceremony celebration",
+        "S": 0.0107
+      },
+      {
+        "event": "anxious before final exam",
+        "S": 0.0077
+      }
+    ]
+  }
+}

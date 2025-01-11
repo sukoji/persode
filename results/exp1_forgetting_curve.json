@@ -1,0 +1,14 @@
+{
+  "lambda_per_day": 0.23104906018664842,
+  "retention_at_6_days": 0.25,
+  "half_life_days": 3.0,
+  "retention_samples": {
+    "0": 1.0,
+    "1": 0.7937005259840998,
+    "3": 0.5,
+    "6": 0.25,
+    "12": 0.0625,
+    "30": 0.0009765625000000009
+  },
+  "crossover_note": "high-emotion memory strength exceeds neutral's initial strength for many days despite decay"
+}
