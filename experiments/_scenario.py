@@ -81,12 +81,72 @@ def build_memories() -> list[Memory]:
     ]
 
 
-# Ground-truth: which events are "emotionally significant" (|valence| high, E high).
+# Objective significance threshold (used by Exp. 3 metrics — not hand-picked per event).
+EMOTION_THRESHOLD = 0.6
+
+
+def is_emotionally_significant(memory: Memory) -> bool:
+    """True when emotional intensity E meets the paper's 'significant event' bar."""
+    return memory.emotional_intensity >= EMOTION_THRESHOLD
+
+
+# Hand labels for Exp. 2 visualisation only (same threshold, kept as a set for styling).
 EMOTIONALLY_SIGNIFICANT = {
-    "graduation ceremony celebration",
-    "family dinner with meat",
-    "car splashed water ruined favorite outfit",
-    "anxious before final exam",
-    "lost beloved dog",
-    "argued with best friend",
+    m.event for m in build_memories() if is_emotionally_significant(m)
 }
+
+
+# Exp. 3 evaluation queries — one natural-language probe per scenario memory.
+# Targets are fixed before any retrieval run; categories stratify reporting.
+EVAL_QUERIES = [
+    {
+        "query": "I'm feeling really happy about a big achievement today",
+        "target": "graduation ceremony celebration",
+        "category": "emotional_long",
+    },
+    {
+        "query": "I remember a joyful meal I shared with my family",
+        "target": "family dinner with meat",
+        "category": "emotional_recent",
+    },
+    {
+        "query": "Something ruined my day and I'm upset about my clothes",
+        "target": "car splashed water ruined favorite outfit",
+        "category": "emotional_recent",
+    },
+    {
+        "query": "I'm nervous and anxious about an upcoming exam",
+        "target": "anxious before final exam",
+        "category": "emotional_long",
+    },
+    {
+        "query": "I miss someone I loved very much and I'm grieving",
+        "target": "lost beloved dog",
+        "category": "emotional_long",
+    },
+    {
+        "query": "What did I cook after buying groceries?",
+        "target": "bought groceries cooked pasta",
+        "category": "neutral_recent",
+    },
+    {
+        "query": "How was my commute on the bus?",
+        "target": "took bus to work",
+        "category": "neutral_recent",
+    },
+    {
+        "query": "I had a peaceful walk outdoors at sunset",
+        "target": "peaceful walk park sunset",
+        "category": "emotional_long",
+    },
+    {
+        "query": "I argued with a close friend and felt frustrated",
+        "target": "argued with best friend",
+        "category": "emotional_long",
+    },
+    {
+        "query": "What household chores did I do on a slow afternoon?",
+        "target": "reorganized closet did laundry",
+        "category": "neutral_recent",
+    },
+]

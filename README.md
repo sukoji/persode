@@ -23,20 +23,10 @@ This repository implements that entire pipeline **deterministically and offline*
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    U["dialogue turn"] --> A["Event-Emotion<br/>Analyzer"]
-    A -->|"event · emotion · E · #tags"| M["Memory<br/>(scored episode)"]
-    M --> S[("MemoryStore<br/>vector DB")]
-    Q["user query"] --> R["Memory Selection Block<br/>fused = α·similarity + (1−α)·salience"]
-    S --> R
-    R --> C["memory-augmented<br/>styled response"]
-    R --> D["Dual-Template journal"]
-    D --> D1["diary entry"]
-    D --> D2["visual prompt<br/>(DALL·E-style)"]
-    O["onboarding<br/>preferences"] -.-> C
-    O -.-> D2
-```
+<p align="center">
+  <img src="docs/figure2_overview.png" width="92%" alt="Figure 2 from Jin et al. (2025): Persode system architecture — onboarding, memory-aware conversation, visual journal creation">
+</p>
+<p align="center"><sub><b>Figure 2</b> from the <a href="https://arxiv.org/abs/2508.20585">paper</a> — system overview: (1) onboarding preferences setup, (2) memory-aware conversation, (3) visual journal creation. Every block below maps to a module in <code>persode/</code>; the GPT-4o / DALL·E 3 blocks are replaced offline by deterministic equivalents.</sub></p>
 
 | Module | Paper component | What it does |
 |---|---|---|
@@ -94,17 +84,19 @@ Ten scenario memories scored under four (wE, wR, wC) weightings. Two things to r
 
 ### Exp. 3 — Salience-aware retrieval (Memory Selection Block)
 
-Three retrieval strategies over the same store and four emotional queries, judged on three metrics: **sig-precision@3** (are retrieved memories emotionally significant?), **target-recall@3** (is the topically correct memory found?), and **long-term recall@3** (does anything older than the six-day window surface?).
+Three retrieval strategies over the same store and **10 queries** (one natural-language probe per scenario memory, including neutral chores/commute queries), judged on five metrics:
 
-| Strategy | sig-precision@3 | target-recall@3 | long-term recall@3 |
-|---|---:|---:|---:|
-| recency-only (short buffer) | 0.33 | 0.00 | 0.00 |
-| similarity-only (pure RAG) | 0.75 | 1.00 | 1.00 |
-| **fused (Persode, α = 0.5)** | **1.00** | **1.00** | **1.00** |
+| Strategy | target-recall@3 | target-MRR | topical-precision@3 | long-term recall@3 | emotional-intrusion@3 ↓ |
+|---|---:|---:|---:|---:|---:|
+| recency-only (short buffer) | 0.30 | 0.23 | 0.23 | 0.00 | 0.33 |
+| similarity-only (pure RAG) | **1.00** | **0.83** | **0.87** | 1.00 | 0.56 |
+| **fused (Persode, α = 0.5)** | 0.80 | 0.71 | 0.77 | **1.00** | 0.89 |
 
-A recency buffer structurally cannot reach past its window. Pure RAG finds the right memory but pads the remaining slots with whatever is lexically close — including mundane chores. The fused score keeps the topical match at rank 1 *and* fills the tail with emotionally significant memories instead. (Honest caveat: sig-precision rewards salience, not topicality — that is why target-recall is reported alongside it; on this 10-memory scenario the fused tail is salience-driven by design.)
+**How to read this.** *target-recall@3* asks whether the designated ground-truth memory appears in the top-3; *topical-precision@3* penalises off-topic padding (a retrieved memory must reach ≥ 50 % of the target's embedding similarity); *long-term recall@3* is stratified over the five queries whose target is older than the six-day window; *emotional-intrusion@3* (lower is better) measures how often high-intensity memories crowd out neutral targets on chore/commute queries.
 
-<p align="center"><img src="results/exp3_retrieval.png" width="80%" alt="Exp 3 — retrieval quality vs baselines"></p>
+A recency buffer structurally scores 0 on long-term recall — it cannot reach past its window. Pure RAG wins overall target recall on this offline hashing embedder because lexical overlap is enough to find the right episode. The fused score trades that off: it **preserves long-term emotional recall** (5/5) but **misses two neutral queries** (groceries, bus commute) because salience pulls emotionally intense long-term memories into the top-3 instead. Full per-query breakdown: [`results/exp3_retrieval.json`](results/exp3_retrieval.json).
+
+<p align="center"><img src="results/exp3_retrieval.png" width="85%" alt="Exp 3 — retrieval quality vs baselines"></p>
 
 ### Exp. 4 — Dual-Template journal generation
 
@@ -134,7 +126,7 @@ Covering: decay calibration and clamping, Eq. 1 scoring / weight normalisation /
 ## Scope & limitations
 
 - The UX study (N = 20) and actual image generation from the paper are out of scope; offline text output is intentionally template-simple.
-- The evaluation scenario is a small hand-labelled synthetic set built from the paper's own vignettes — good for verifying mechanisms, not a public benchmark.
+- The evaluation scenario is a small hand-labelled synthetic set built from the paper's own vignettes — good for verifying mechanisms, not a public benchmark. Exp. 3 reports per-query JSON so every aggregate number is auditable.
 - The offline lexicon analyzer is keyword-based; nuanced or sarcastic emotion needs the LLM backend.
 
 ## Citation
