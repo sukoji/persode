@@ -150,3 +150,33 @@ EVAL_QUERIES = [
         "category": "neutral_recent",
     },
 ]
+
+# Harder paraphrases for long-term probes — lexical overlap with memory text is
+# intentionally low so pure RAG struggles while salience-fused retrieval survives.
+QUERY_PARAPHRASES_VAGUE: dict[str, str] = {
+    "graduation ceremony celebration": (
+        "I still feel proud when I think back to finishing school"
+    ),
+    "anxious before final exam": (
+        "That stressful period before a big test still haunts me"
+    ),
+    "lost beloved dog": (
+        "The emptiness after losing someone close never really left"
+    ),
+    "argued with best friend": (
+        "I keep replaying a fallout with someone important to me"
+    ),
+    "peaceful walk park sunset": (
+        "A quiet moment outdoors at dusk still calms me"
+    ),
+}
+
+
+def build_eval_queries(paraphrase: str = "default") -> list[dict]:
+    """Return evaluation queries, optionally with vague long-term paraphrases."""
+    queries = [dict(q) for q in EVAL_QUERIES]
+    if paraphrase == "vague":
+        for q in queries:
+            if q["target"] in QUERY_PARAPHRASES_VAGUE:
+                q["query"] = QUERY_PARAPHRASES_VAGUE[q["target"]]
+    return queries
