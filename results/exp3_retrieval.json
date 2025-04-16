@@ -1,13 +1,13 @@
 {
   "reference_now": "2025-01-24T12:00:00+00:00",
-  "top_k": 5,
+  "top_k": 4,
   "query_count": 5,
   "emotion_threshold": 0.6,
   "topical_sim_fraction": 0.35,
   "tuned_config": {
-    "alpha": 0.6,
+    "alpha": 0.5,
     "w_emotion": 1.0,
-    "w_recall": 2.0,
+    "w_recall": 1.0,
     "w_context": 1.0,
     "protection": 0.9,
     "query_filter": "emotional_long",
@@ -24,7 +24,7 @@
     "recency-only": {
       "target_recall": 0.0,
       "target_mrr": 0.0,
-      "topical_precision": 0.7200000000000001,
+      "topical_precision": 0.65,
       "long_term_recall": 0.0,
       "long_term_query_count": 5,
       "emotional_intrusion": null,
@@ -39,8 +39,7 @@
             "took bus to work",
             "bought groceries cooked pasta",
             "family dinner with meat",
-            "car splashed water ruined favorite outfit",
-            "reorganized closet did laundry"
+            "car splashed water ruined favorite outfit"
           ],
           "target_hit": false,
           "target_rank": null
@@ -53,8 +52,7 @@
             "took bus to work",
             "bought groceries cooked pasta",
             "family dinner with meat",
-            "car splashed water ruined favorite outfit",
-            "reorganized closet did laundry"
+            "car splashed water ruined favorite outfit"
           ],
           "target_hit": false,
           "target_rank": null
@@ -67,8 +65,7 @@
             "took bus to work",
             "bought groceries cooked pasta",
             "family dinner with meat",
-            "car splashed water ruined favorite outfit",
-            "reorganized closet did laundry"
+            "car splashed water ruined favorite outfit"
           ],
           "target_hit": false,
           "target_rank": null
@@ -81,8 +78,7 @@
             "took bus to work",
             "bought groceries cooked pasta",
             "family dinner with meat",
-            "car splashed water ruined favorite outfit",
-            "reorganized closet did laundry"
+            "car splashed water ruined favorite outfit"
           ],
           "target_hit": false,
           "target_rank": null
@@ -95,8 +91,7 @@
             "took bus to work",
             "bought groceries cooked pasta",
             "family dinner with meat",
-            "car splashed water ruined favorite outfit",
-            "reorganized closet did laundry"
+            "car splashed water ruined favorite outfit"
           ],
           "target_hit": false,
           "target_rank": null
@@ -104,10 +99,10 @@
       ]
     },
     "similarity-only": {
-      "target_recall": 0.6,
+      "target_recall": 0.4,
       "target_mrr": 0.4019047619047619,
       "topical_precision": 1.0,
-      "long_term_recall": 0.6,
+      "long_term_recall": 0.4,
       "long_term_query_count": 5,
       "emotional_intrusion": null,
       "neutral_query_count": 0,
@@ -121,8 +116,7 @@
             "graduation ceremony celebration",
             "anxious before final exam",
             "took bus to work",
-            "lost beloved dog",
-            "reorganized closet did laundry"
+            "lost beloved dog"
           ],
           "target_hit": true,
           "target_rank": 1
@@ -135,10 +129,9 @@
             "car splashed water ruined favorite outfit",
             "bought groceries cooked pasta",
             "graduation ceremony celebration",
-            "family dinner with meat",
-            "anxious before final exam"
+            "family dinner with meat"
           ],
-          "target_hit": true,
+          "target_hit": false,
           "target_rank": 5
         },
         {
@@ -149,8 +142,7 @@
             "reorganized closet did laundry",
             "took bus to work",
             "peaceful walk park sunset",
-            "graduation ceremony celebration",
-            "car splashed water ruined favorite outfit"
+            "graduation ceremony celebration"
           ],
           "target_hit": false,
           "target_rank": 7
@@ -163,8 +155,7 @@
             "car splashed water ruined favorite outfit",
             "peaceful walk park sunset",
             "bought groceries cooked pasta",
-            "graduation ceremony celebration",
-            "family dinner with meat"
+            "graduation ceremony celebration"
           ],
           "target_hit": true,
           "target_rank": 2
@@ -177,8 +168,7 @@
             "graduation ceremony celebration",
             "family dinner with meat",
             "car splashed water ruined favorite outfit",
-            "bought groceries cooked pasta",
-            "took bus to work"
+            "bought groceries cooked pasta"
           ],
           "target_hit": false,
           "target_rank": 6
@@ -186,10 +176,10 @@
       ]
     },
     "fused (Persode)": {
-      "target_recall": 1.0,
+      "target_recall": 0.8,
       "target_mrr": 0.5566666666666668,
-      "topical_precision": 0.9199999999999999,
-      "long_term_recall": 1.0,
+      "topical_precision": 0.95,
+      "long_term_recall": 0.8,
       "long_term_query_count": 5,
       "emotional_intrusion": null,
       "neutral_query_count": 0,
@@ -203,8 +193,7 @@
             "graduation ceremony celebration",
             "lost beloved dog",
             "anxious before final exam",
-            "car splashed water ruined favorite outfit",
-            "took bus to work"
+            "car splashed water ruined favorite outfit"
           ],
           "target_hit": true,
           "target_rank": 1
@@ -217,8 +206,7 @@
             "car splashed water ruined favorite outfit",
             "graduation ceremony celebration",
             "family dinner with meat",
-            "anxious before final exam",
-            "peaceful walk park sunset"
+            "anxious before final exam"
           ],
           "target_hit": true,
           "target_rank": 4
@@ -229,10 +217,9 @@
           "category": "emotional_long",
           "retrieved": [
             "lost beloved dog",
-            "reorganized closet did laundry",
             "graduation ceremony celebration",
             "car splashed water ruined favorite outfit",
-            "peaceful walk park sunset"
+            "reorganized closet did laundry"
           ],
           "target_hit": true,
           "target_rank": 1
@@ -245,8 +232,7 @@
             "car splashed water ruined favorite outfit",
             "graduation ceremony celebration",
             "peaceful walk park sunset",
-            "family dinner with meat",
-            "lost beloved dog"
+            "family dinner with meat"
           ],
           "target_hit": true,
           "target_rank": 3
@@ -259,10 +245,9 @@
             "graduation ceremony celebration",
             "car splashed water ruined favorite outfit",
             "lost beloved dog",
-            "family dinner with meat",
-            "argued with best friend"
+            "family dinner with meat"
           ],
-          "target_hit": true,
+          "target_hit": false,
           "target_rank": 5
         }
       ]

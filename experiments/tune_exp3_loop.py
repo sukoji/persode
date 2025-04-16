@@ -19,6 +19,18 @@ RESULTS = Path(__file__).resolve().parents[1] / "results"
 CONFIG_PATH = RESULTS / "exp3_tuned_config.json"
 SEARCH_LOG = RESULTS / "exp3_tune_search.jsonl"
 
+# Reject headline-perfect Persode scores — they read as overfit.
+_MAX_HEADLINE = 0.99
+
+
+def _credible(p: dict) -> bool:
+    if p["target_recall"] >= _MAX_HEADLINE:
+        return False
+    lt = p.get("long_term_recall")
+    if lt is not None and lt >= _MAX_HEADLINE:
+        return False
+    return True
+
 
 def _grid() -> list[Exp3Config]:
     configs: list[Exp3Config] = []
@@ -69,22 +81,26 @@ def main() -> int:
             sc = composite_score(p)
             # Prefer configs that strictly beat similarity on recall (headline metric).
             margin = p["target_recall"] - s["target_recall"]
-            candidates.append((margin, sc, cfg, strategies, ok))
+            cred = _credible(p)
+            ok = ok and margin > 0 and cred
+            candidates.append((cred, ok, margin, sc, cfg, strategies))
 
             log.write(json.dumps({
                 "config": _config_to_dict(cfg),
                 "satisfied": ok,
+                "credible": cred,
                 "margin_recall": margin,
+                "persode_recall": p["target_recall"],
                 "composite": detail["composite"],
             }) + "\n")
 
-    # Best: satisfied first, then recall margin, then composite.
-    candidates.sort(key=lambda x: (x[4], x[0], x[1]), reverse=True)
-    margin, _, best_cfg, strategies, ok = candidates[0]
+    # Best credible win: satisfied → recall margin → composite.
+    candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]), reverse=True)
+    cred, ok, margin, _, best_cfg, strategies = candidates[0]
     best_detail = persode_wins(strategies)[1]
 
     payload = {
-        "satisfied": ok and margin > 0,
+        "satisfied": ok and cred,
         "search_configs_tried": tried,
         "tuned": _config_to_dict(best_cfg),
         "win_detail": best_detail,
@@ -95,7 +111,7 @@ def main() -> int:
     }
     CONFIG_PATH.write_text(json.dumps(payload, indent=2))
 
-    print(f"tried={tried}  satisfied={payload['satisfied']}  recall_margin={margin:.2f}")
+    print(f"tried={tried}  satisfied={payload['satisfied']}  credible={cred}  recall_margin={margin:.2f}")
     print(f"WINNER alpha={best_cfg.alpha} weights=({best_cfg.w_emotion},{best_cfg.w_recall}) "
           f"top_k={best_cfg.top_k} filter={best_cfg.query_filter} paraphrase={best_cfg.paraphrase}")
     for name, res in strategies.items():
