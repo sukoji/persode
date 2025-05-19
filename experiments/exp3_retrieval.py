@@ -66,30 +66,40 @@ def main() -> None:
                   f"(neutral queries, n={res['neutral_query_count']})")
 
     style.apply()
-    metrics = [
+    # Chart metrics must match the README table — skip N/A columns.
+    metric_defs = [
         (f"target-recall@{top_k}", "target_recall", style.BLUE),
-        (f"topical-precision@{top_k}", "topical_precision", style.AQUA),
-        (f"long-term recall@{top_k}", "long_term_recall", style.YELLOW),
-        (f"emotional intrusion@{top_k} ↓", "emotional_intrusion", style.VIOLET),
+        (f"target-MRR", "target_mrr", style.AQUA),
+        (f"topical-precision@{top_k}", "topical_precision", style.YELLOW),
+        (f"long-term recall@{top_k}", "long_term_recall", style.VIOLET),
+    ]
+    metrics = [
+        (label, key, color) for label, key, color in metric_defs
+        if any(strategies[n].get(key) is not None for n in strategies)
     ]
     names = list(strategies.keys())
     x = np.arange(len(names))
-    w, gap = 0.19, 0.02
-    fig, ax = plt.subplots(figsize=(10, 5))
+    n_met = len(metrics)
+    w = min(0.22, 0.8 / max(n_met, 1))
+    gap = 0.02
+    fig, ax = plt.subplots(figsize=(10, 5.2))
     for i, (label, key, color) in enumerate(metrics):
-        vals = [0.0 if strategies[n].get(key) is None else strategies[n][key] for n in names]
-        bars = ax.bar(x + (i - 1.5) * (w + gap), vals, w, label=label, color=color)
-        for b in bars:
-            if b.get_height() > 0:
-                ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.02,
-                        f"{b.get_height():.2f}", ha="center", fontsize=8.5, color=style.INK_2)
+        vals = [strategies[n].get(key) or 0.0 for n in names]
+        offset = (i - (n_met - 1) / 2) * (w + gap)
+        bars = ax.bar(x + offset, vals, w, label=label, color=color)
+        for b, v in zip(bars, vals):
+            ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.02,
+                    f"{v:.2f}", ha="center", fontsize=8.5, color=style.INK_2)
     ax.set_xticks(x)
     ax.set_xticklabels(names, fontsize=10, color=style.INK)
     ax.set_ylim(0, 1.18)
-    ax.set_ylabel("score (lower is better for intrusion)")
+    ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+    ax.set_ylabel("score (higher is better)")
     title = f"Memory Selection Block — retrieval vs baselines ({qn} queries, top-{top_k})"
     if cfg.query_filter:
-        title += f"  [{cfg.query_filter} only]"
+        title += f"  [{cfg.query_filter}]"
+    if cfg.paraphrase == "vague":
+        title += "  · vague probes"
     ax.set_title(title)
     ax.legend(loc="upper left", ncol=1, fontsize=9)
     style.style_axes(ax)

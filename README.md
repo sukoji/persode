@@ -70,6 +70,15 @@ Optional extras: `pip install -e ".[semantic]"` (sentence-transformers), `".[ope
 
 Four standalone scripts under [`experiments/`](experiments) validate each mechanism against the paper's claims. All are deterministic (fixed reference clock, hand-labelled scenario in [`experiments/_scenario.py`](experiments/_scenario.py)) and run offline in seconds, writing figures + machine-readable JSON to [`results/`](results).
 
+```bash
+python experiments/run_all.py          # regenerate every figure + JSON
+python experiments/exp1_forgetting_curve.py
+python experiments/exp2_memory_scoring.py
+python experiments/exp3_retrieval.py   # uses results/exp3_tuned_config.json if present
+python experiments/exp4_visual_prompt.py
+python experiments/tune_exp3_loop.py   # hyperparameter search for Exp. 3 only
+```
+
 ### Exp. 1 — Forgetting-curve calibration
 
 The paper anchors short-term memory to a six-day window with a ~75 % retention drop. Solving `e^(−6λ) = 0.25` gives **λ = ln 4⁄6 ≈ 0.231/day** (half-life 3 days); the assertion in the script verifies the calibration to machine precision. The right panel shows the consolidation mechanism: salience slows the decay (`λ_eff = λ·(1 − γ·k)`), so an emotionally intense memory is still retrievable after a month while a neutral one has effectively vanished.
@@ -126,6 +135,7 @@ Covering: decay calibration and clamping, Eq. 1 scoring / weight normalisation /
 - The UX study (N = 20) and actual image generation from the paper are out of scope; offline text output is intentionally template-simple.
 - The evaluation scenario is a small hand-labelled synthetic set built from the paper's own vignettes — good for verifying mechanisms, not a public benchmark. Exp. 3 reports per-query JSON so every aggregate number is auditable.
 - The offline lexicon analyzer is keyword-based; nuanced or sarcastic emotion needs the LLM backend.
+- **What is not a separate experiment script:** α fusion ablation plots, sentence-transformer vs hashing embedder comparison, reinforcement-over-time curves, and the paper's user study — the core four scripts above cover the implementable offline mechanisms only.
 
 ## Citation
 
