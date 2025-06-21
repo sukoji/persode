@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 # A compact valence/arousal-style lexicon. ``intensity`` approximates the
 # affective arousal the paper's "emotional intensity" term captures.
 EMOTION_LEXICON: Dict[str, Dict[str, Any]] = {
-    "joyful":       {"keywords": ["joy", "joyful", "happy", "delighted", "excited", "celebrate", "celebration", "proud", "grateful", "love", "wonderful", "amazing", "great"], "intensity": 0.85, "valence": +1},
+    "joyful":       {"keywords": ["joy", "joyful", "happy", "delighted", "excited", "celebrate", "celebrated", "celebration", "graduation", "graduated", "proud", "grateful", "love", "wonderful", "amazing", "great", "overjoyed"], "intensity": 0.85, "valence": +1},
     "content":      {"keywords": ["calm", "peaceful", "serene", "relaxed", "content", "cozy", "tranquil", "satisfied"], "intensity": 0.45, "valence": +1},
     "sad":          {"keywords": ["sad", "sorrow", "sorrowful", "cry", "crying", "tears", "heartbroken", "lonely", "miss", "grief", "grieving", "down", "disappointed", "hurt"], "intensity": 0.8, "valence": -1},
     "angry":        {"keywords": ["angry", "anger", "furious", "mad", "annoyed", "irritated", "frustrated", "frustration", "upset", "rage", "ruined", "scolded"], "intensity": 0.82, "valence": -1},
@@ -104,7 +104,10 @@ class EventEmotionAnalyzer:
         # Dominant emotion = lexicon entry with the most keyword hits.
         best_emotion, best_hits = "neutral", 0
         for emotion, spec in EMOTION_LEXICON.items():
-            hits = sum(1 for kw in spec["keywords"] if kw in token_set)
+            hits = sum(
+                1 for kw in spec["keywords"]
+                if any(t == kw or (len(kw) >= 4 and t.startswith(kw)) for t in tokens)
+            )
             if hits > best_hits:
                 best_emotion, best_hits = emotion, hits
 
