@@ -37,7 +37,8 @@ EMOTION_LEXICON: Dict[str, Dict[str, Any]] = {
 _BOOSTERS = ["really", "so", "very", "extremely", "truly", "deeply", "completely", "all"]
 _STOPWORDS = set("""a an the this that these those i you he she it we they me my your his her our their
 of to in on at for with and or but if then so as is am are was were be been being do did does have has had
-i'm i've it's don't didn't wasn't weren't just about not no yes very really so too my me up out day today""".split())
+i'm i've it's don't didn't wasn't weren't just about not no yes very really so too my me up out day today
+feel feels felt feeling""".split())
 
 
 @dataclass

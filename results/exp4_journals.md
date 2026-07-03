@@ -9,17 +9,17 @@ _Reference date: 2025-01-24_
 
 **Diary**
 
-> Today tested my patience. I keep coming back to scolded mom spending all allowance feel regretful. The anger of it still lingers. It reminded me of graduation ceremony celebration. I hope tomorrow feels a little lighter.
+> Today gave me something to think about. I keep coming back to scolded mom spending all allowance regretful. It reminded me of graduation ceremony celebration. I'll let today simply be what it was.
 
-#Spending #Allowance #Feel #Angry
+#Spending #Allowance #Reflective
 
 **Visual prompt**
 
 ```
-soft anime illustration, a 15-year-old character, dyed yellow hair, no glasses, trendy fashion, vibrant city background, depicting scolded mom spending all allowance feel regretful, conveying angry emotion, tense dramatic lighting, stormy frustrated mood, cinematic composition, highly detailed.
+soft anime illustration, a 15-year-old character, dyed yellow hair, no glasses, trendy fashion, vibrant city background, depicting scolded mom spending all allowance regretful, conveying reflective emotion, gentle diffused light, contemplative nostalgic mood, cinematic composition, highly detailed.
 ```
 
-**Extracted episode** — emotion: `angry`, intensity: `0.88`, tags: #Spending, #Allowance, #Feel, #Angry
+**Extracted episode** — emotion: `reflective`, intensity: `0.56`, tags: #Spending, #Allowance, #Reflective
 
 ### Car Splashed Puddle Water  ·  2025-01-24
 
@@ -44,17 +44,17 @@ soft anime illustration, a 15-year-old character, dyed yellow hair, no glasses, 
 
 **Diary**
 
-> Today tested my patience. I keep coming back to scolded mom spending all allowance feel regretful. The anger of it still lingers. It reminded me of graduation ceremony celebration. I hope tomorrow feels a little lighter.
+> Today gave me something to think about. I keep coming back to scolded mom spending all allowance regretful. It reminded me of graduation ceremony celebration. I'll let today simply be what it was.
 
-#Spending #Allowance #Feel #Angry
+#Spending #Allowance #Reflective
 
 **Visual prompt**
 
 ```
-soft anime illustration, a 27-year-old character, short black hair, wearing glasses, minimal fashion, minimal nature background, depicting scolded mom spending all allowance feel regretful, conveying angry emotion, tense dramatic lighting, stormy frustrated mood, cinematic composition, highly detailed.
+soft anime illustration, a 27-year-old character, short black hair, wearing glasses, minimal fashion, minimal nature background, depicting scolded mom spending all allowance regretful, conveying reflective emotion, gentle diffused light, contemplative nostalgic mood, cinematic composition, highly detailed.
 ```
 
-**Extracted episode** — emotion: `angry`, intensity: `0.88`, tags: #Spending, #Allowance, #Feel, #Angry
+**Extracted episode** — emotion: `reflective`, intensity: `0.56`, tags: #Spending, #Allowance, #Reflective
 
 ### Car Splashed Puddle Water  ·  2025-01-24
 
