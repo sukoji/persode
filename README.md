@@ -123,10 +123,10 @@ Per-query JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Ex
 ## Tests
 
 ```bash
-python -m pytest    # 27 tests, < 1 s, no network
+python -m pytest    # 32 tests, < 1 s, no network
 ```
 
-Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, template determinism across profiles, and journal recall de-duplication (a recall never points at the current episode).
+Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, template determinism across profiles, journal recall de-duplication (a recall never points at the current episode), and **results-regression** tests that pin every headline number reported below (so the README can't drift from the code).
 
 ## Faithfulness to the paper
 
