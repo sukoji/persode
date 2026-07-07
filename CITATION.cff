@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+message: "This repository is a reference implementation. If you use it, please cite the original paper below."
+title: "Persode — reference implementation"
+abstract: "Deterministic, offline reference implementation of the episodic memory-aware journaling core of Persode (Jin et al., 2025)."
+repository-code: "https://github.com/sukoji/persode"
+license: MIT
+type: software
+authors:
+  - family-names: Jin
+    given-names: Seokho
+  - family-names: Kim
+    given-names: Manseo
+  - family-names: Byun
+    given-names: Sungho
+  - family-names: Kim
+    given-names: Hansol
+  - family-names: Lee
+    given-names: Jungmin
+  - family-names: Baek
+    given-names: Sujeong
+  - family-names: Kim
+    given-names: Semi
+  - family-names: Park
+    given-names: Sanghum
+  - family-names: Park
+    given-names: Sung
+preferred-citation:
+  type: conference-paper
+  title: "Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent"
+  year: 2025
+  collection-title: "ICES"
+  notes: "Best Oral Presentation, ICES 2025."
+  url: "https://arxiv.org/abs/2508.20585"
+  identifiers:
+    - type: other
+      value: "arXiv:2508.20585"
+      description: "arXiv preprint"
+  authors:
+    - family-names: Jin
+      given-names: Seokho
+    - family-names: Kim
+      given-names: Manseo
+    - family-names: Byun
+      given-names: Sungho
+    - family-names: Kim
+      given-names: Hansol
+    - family-names: Lee
+      given-names: Jungmin
+    - family-names: Baek
+      given-names: Sujeong
+    - family-names: Kim
+      given-names: Semi
+    - family-names: Park
+      given-names: Sanghum
+    - family-names: Park
+      given-names: Sung

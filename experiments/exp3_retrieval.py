@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import matplotlib
@@ -64,6 +65,48 @@ def main() -> None:
         if res["emotional_intrusion"] is not None:
             print(f"  emotional-intrusion@{top_k} = {res['emotional_intrusion']:.2f}  "
                   f"(neutral queries, n={res['neutral_query_count']})")
+
+    # ---- robustness: does the headline survive design choices? --------------
+    # The chart above is the *scoped* claim (long-term emotional recall under
+    # lexically-distant probes). These three checks exist so the scoping cannot
+    # be mistaken for cherry-picking; they are written to JSON and printed here.
+    def _triple(strats: dict) -> dict:
+        return {
+            n: {k: round(v, 3) for k, v in r.items()
+                if k in ("target_recall", "target_mrr", "topical_precision")}
+            for n, r in strats.items()
+        }
+
+    full_set = _triple(eval_all(replace(cfg, query_filter=None)))          # all 10 queries
+    scoped_plain = _triple(eval_all(replace(cfg, paraphrase="default")))    # scoped, non-vague
+    alpha_grid = [
+        {"alpha": a,
+         **{k: round(eval_all(replace(cfg, alpha=a))["fused (Persode)"][k], 3)
+            for k in ("target_recall", "target_mrr")}}
+        for a in (0.0, 0.25, 0.5, 0.75, 1.0)
+    ]
+    robustness = {
+        "full_set_vague": full_set,
+        "scoped_plain_probes": scoped_plain,
+        "alpha_sensitivity": alpha_grid,
+        "why_filter": "The paper's claim is scoped to emotionally-significant long-term "
+                      "memories, so metrics are reported on exactly those queries.",
+        "why_vague": "With verbatim-like probes, similarity-only already recalls the "
+                     "long-term target (see scoped_plain_probes); the fusion gain only "
+                     "appears when the probe is lexically distant from the stored episode.",
+        "tradeoff": "Over the full query mix, fusion is net-neutral vs pure RAG "
+                    "(see full_set_vague): it reallocates capacity toward long-term "
+                    "emotional recall at a small cost on lexically-easy queries.",
+    }
+    print("\n--- robustness (why the scoping is not cherry-picking) ---")
+    print(f"full set (10 q, vague)   fused vs sim recall: "
+          f"{full_set['fused (Persode)']['target_recall']} vs "
+          f"{full_set['similarity-only']['target_recall']}")
+    print(f"scoped, non-vague probes  sim recall: "
+          f"{scoped_plain['similarity-only']['target_recall']}  "
+          f"(already solved → vague probes are the discriminating case)")
+    print("alpha sweep (scoped) recall: "
+          + ", ".join(f"{g['alpha']}:{g['target_recall']}" for g in alpha_grid))
 
     style.apply()
     # Chart metrics must match the README table. Under the emotional_long filter
@@ -127,6 +170,7 @@ def main() -> None:
         },
         "long_term_targets": lt_targets,
         "strategies": strategies,
+        "robustness": robustness,
     }
     (RESULTS / "exp3_retrieval.json").write_text(json.dumps(payload, indent=2))
 

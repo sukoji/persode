@@ -83,7 +83,7 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 | # | 확인 내용 | 핵심 |
 |---|---|---|
 | **1** | [망각곡선 보정](experiments/exp1_forgetting_curve.py) | `e^(−6λ)=0.25`(논문의 6일·~75% 감소)을 풀면 **λ = ln 4⁄6 ≈ 0.231/day**(반감기 3일); 30일 시점에 고현저성 기억은 **S ≈ 0.044**, 동일 나이 중립 기억은 **≈ 0.0003**(~150×)로 장기 생존. |
-| **2** | [Eq. 1 가중치 소거](experiments/exp2_memory_scoring.py) | 최근성이 절대 스케일을 지배; 감정 편향 가중치에서 한 달 된 강렬한 기억이 균형값의 **×2.6** 점수를 받아 롱테일 순서를 Eq. 1 의도대로 재배열. |
+| **2** | [Eq. 1 가중치 소거](experiments/exp2_memory_scoring.py) | 최근성이 절대 스케일을 지배; 감정 편향 가중치에서 한 달 된 강렬한 기억(`lost beloved dog`, E = 0.95)이 균형값의 **×2.6** 점수를 받아 저장소 순위 **7위 → 5위**로 상승 — Eq. 1이 의도한 롱테일 재정렬. |
 | **3** | [현저성 인식 검색](experiments/exp3_retrieval.py) | 장기·어휘적으로 먼 감정 질의에서 융합 검색이 순수 RAG를 능가(아래 표). |
 | **4** | [Dual-Template 생성](experiments/exp4_visual_prompt.py) | 한 발화 → 성찰 일기 **및** DALL·E용 시각 프롬프트; 동일 사건도 온보딩 프로필에 따라 다른 프롬프트 산출. |
 
@@ -92,7 +92,9 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
   <img src="results/exp3_retrieval.png" width="49%" alt="Exp 3 — 검색 vs 베이스라인">
 </p>
 
-**Exp. 3 상세.** 6일 창보다 오래된 장기 감정 질의 5개를 모호한 패러프레이즈로 표현해 순수 키워드 매칭이 이길 수 없게 함. 융합 가중치·top-k는 그리드 서치로 튜닝([`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); 만점에 가까운 config는 과적합으로 기각.
+**Exp. 3 — 설계와 근거.** 논문의 검색 주장은 *한정적*입니다: RAG는 **감정적으로 중요한 장기** 기억을 떠올려야 함. 따라서 지표는 바로 그 질의(객관적 기준: 감정 E ≥ 0.6, 대상 나이 > 6일 — 질의별 임의 선택 아님)에 대해서만 보고하며, **모호한 패러프레이즈**로 표현합니다. 모호한 표현이 핵심입니다: 사용자는 저장된 에피소드("lost my beloved dog")와 단어가 겹치지 않는 *감정*("사랑하던 존재를 잃은 뒤의 공허함")으로 회상하며, 바로 여기서 키워드 매칭 RAG가 무너집니다. 융합 가중치 α·top-k는 그리드 서치로 튜닝([`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); 만점에 가까운 config는 과적합으로 기각.
+
+한정 결과 — 장기 감정 질의 5개, 모호한 probe, top-4:
 
 | 전략 | target-recall@4 | target-MRR | topical-precision@4 |
 |---|---:|---:|---:|
@@ -100,7 +102,15 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 | similarity-only (순수 RAG) | 0.40 | 0.40 | **1.00** |
 | **fused (α = 0.5)** | **0.80** | **0.56** | 0.95 |
 
-질의가 감정적으로 표현되지만 어휘적으로 먼 경우 순수 RAG는 5개 중 2개만 회수; 유사도와 현저성을 융합하면 4/5에 도달 — 수상쩍은 만점 없이. 질의별 JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Exp. 4 전체 기록(두 프로필 × 두 비네트): [`results/exp4_journals.md`](results/exp4_journals.md).
+순수 RAG는 5개 중 2개 회수; 현저성 융합은 4/5에 도달하며 topical precision을 근소하게(1.00 → 0.95) 양보.
+
+**왜 이것이 체리피킹이 아닌 한정된 승리인가.** 융합은 RAG의 보편적 개선이 아니라 논문의 관심 영역으로 검색 용량을 *재배분*하는 것입니다. 아래 세 가지 점검은 모두 [`results/exp3_retrieval.json`](results/exp3_retrieval.json)(`robustness`)에 재현되며, 숨기지 않고 보고합니다:
+
+- **전체 질의(10개):** fused vs 순수 RAG recall이 **0.70 vs 0.70** — net 중립. 한정 이득은 어휘적으로 쉬운(최근·중립) 질의에서의 약손해로 상쇄됨.
+- **왜 모호한 probe인가:** *같은* 장기 질의 5개를 일반 표현으로 주면 similarity-only가 이미 recall **1.00** — 좁힐 격차가 없으므로 어휘 불일치가 유일한 판별 영역.
+- **α는 마법값이 아니라 평탄역:** 한정 recall이 **α ∈ [0.5, 0.75]에서 0.80으로 평탄**(α = 0.5가 MRR 최고); 순수 유사도(α = 1)·순수 현저성(α = 0)은 둘 다 0.40으로 하락.
+
+질의별 JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Exp. 4 전체 기록(두 프로필 × 두 비네트): [`results/exp4_journals.md`](results/exp4_journals.md).
 
 ## 테스트
 
@@ -137,10 +147,14 @@ python -m pytest    # 25개 테스트, < 1초, 네트워크 불필요
 ```bibtex
 @inproceedings{jin2025persode,
   title     = {Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent},
-  author    = {Jin et al.},
+  author    = {Jin, Seokho and Kim, Manseo and Byun, Sungho and Kim, Hansol and
+               Lee, Jungmin and Baek, Sujeong and Kim, Semi and Park, Sanghum and Park, Sung},
   booktitle = {ICES},
   year      = {2025},
-  note      = {Best Oral Presentation. arXiv:2508.20585}
+  note      = {Best Oral Presentation. arXiv:2508.20585},
+  eprint    = {2508.20585},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.HC}
 }
 ```
 
