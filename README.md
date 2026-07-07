@@ -75,7 +75,14 @@ Optional extras: `pip install -e ".[semantic]"` (sentence-transformers), `".[ope
 
 ## Reproducing the experiments
 
-The paper reports no benchmark, so these four scripts are **the implementation's own deterministic checks** that each mechanism behaves as the paper describes qualitatively. All run offline in seconds against a fixed reference clock and a hand-labelled scenario ([`experiments/_scenario.py`](experiments/_scenario.py)), writing figures + machine-readable JSON to [`results/`](results).
+The paper reports no benchmark (it names user testing as future work), so these four scripts are **the implementation's own deterministic checks** that each mechanism behaves as the paper describes qualitatively. All run offline in seconds against a fixed reference clock and a hand-labelled scenario ([`experiments/_scenario.py`](experiments/_scenario.py)), writing figures + machine-readable JSON to [`results/`](results).
+
+**Design principles** (why these are valid, not decorative):
+- **Reproducible by construction** — a single frozen reference clock (`NOW`) and a fixed scenario mean every figure and number is bit-identical on any machine, every run. No randomness, no network.
+- **Objective, pre-declared labels** — "significant" is `E ≥ 0.6` and "long-term" is `age > 6 d`, applied uniformly; targets are fixed *before* any retrieval. Nothing is hand-picked per item to flatter a result.
+- **Fair baselines** — each mechanism is measured against the honest alternative it must beat: a recency buffer (Exp. 3), pure-RAG similarity (Exp. 3), and balanced Eq. 1 weights (Exp. 2) — not against strawmen.
+- **Auditable** — every aggregate ships with per-query / per-memory JSON, and tradeoffs (e.g. fusion's cost on easy queries, §Exp. 3) are reported, not hidden.
+- **Scope-honest** — these validate the *algorithmic mechanisms*; they are not, and do not claim to be, the paper's user study.
 
 ```bash
 python experiments/run_all.py     # regenerate every figure + JSON below
