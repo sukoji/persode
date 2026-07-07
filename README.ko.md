@@ -116,14 +116,14 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 - **전체 질의(10개):** fused vs 순수 RAG recall이 **0.70 vs 0.70** — net 중립. 한정 이득은 어휘적으로 쉬운(최근·중립) 질의에서의 약손해로 상쇄됨.
 - **왜 모호한 probe인가:** *같은* 장기 질의 5개를 일반 표현으로 주면 similarity-only가 이미 recall **1.00** — 좁힐 격차가 없으므로 어휘 불일치가 유일한 판별 영역.
 - **α는 마법값이 아니라 평탄역:** 한정 recall이 **α ∈ [0.5, 0.75]에서 0.80으로 평탄**(α = 0.5가 MRR 최고); 순수 유사도(α = 1)·순수 현저성(α = 0)은 둘 다 0.40으로 하락.
-- **임베더 의존성(중요, 공개):** 위 수치는 결정론적 **해싱(어휘)** 임베더 기준입니다. 실제 의미 모델로 재실행하면 — `PERSODE_EMBEDDER=sentence-transformers python experiments/exp3_retrieval.py` — 순수 유사도가 이미 **모든** 대상을 회수(recall **1.00**)합니다. 모델이 *"사랑하던 존재를 잃은 뒤의 공허함"* ≈ *"lost my beloved dog"*의 의미 유사성을 이해하기 때문입니다. 따라서 **위의 recall 이득은 약한/어휘적 임베더가 놓치는 부분이지, 의미 RAG에 대한 보편적 승리가 아닙니다.** salience의 임베더-독립적 기여는 **우선순위화**(동등하게 관련된 기억들 중 감정적으로 중요한 것을 먼저 랭크 — 논문의 실제 주장)이며, 이 소규모 셋의 순수 recall 지표로는 분리되지 않습니다. 해싱 임베더 수치가 fusion을 과대포장하지 않도록 이를 공개합니다.
+- **임베더 의존성(중요, 공개):** 위 수치는 결정론적 **해싱(어휘)** 임베더 기준입니다. 실제 의미 모델로 재실행하면 — `PERSODE_EMBEDDER=sentence-transformers python experiments/exp3_retrieval.py` — 순수 유사도가 이미 **모든** 대상을 회수(recall **1.00**)합니다. 모델이 *"사랑하던 존재를 잃은 뒤의 공허함"* ≈ *"lost my beloved dog"*의 의미 유사성을 이해하기 때문입니다. 따라서 **위의 recall 이득은 약한/어휘적 임베더가 놓치는 부분이지, 의미 RAG에 대한 보편적 승리가 아닙니다.** salience의 임베더-독립적 기여는 **우선순위화**(동등하게 관련된 기억들 중 감정적으로 중요한 것을 먼저 랭크 — 논문의 실제 주장)입니다. 그리고 이는 임베더-독립적으로 *입증*됩니다([`salience_prioritization`](results/exp3_retrieval.json) in JSON): 두 기억에 동일 텍스트를 주면 — 어떤 임베더든 유사도가 동률 — 융합은 감정적으로 중요한 쪽을 1위로(`[significant, neutral]`), 순수 유사도는 동률로 방치(`[neutral, significant]`, 임의). 해싱 임베더 recall 수치가 fusion을 과대포장하지 않도록 이 모두를 공개합니다.
 
 질의별 JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Exp. 4 전체 기록(두 프로필 × 두 비네트): [`results/exp4_journals.md`](results/exp4_journals.md).
 
 ## 테스트
 
 ```bash
-python -m pytest    # 35개 테스트, < 1초, 네트워크 불필요
+python -m pytest    # 36개 테스트, < 2초, 네트워크 불필요
 ```
 
 감쇠 보정·클램핑, Eq. 1 점수/가중치 정규화/통합, 검색 융합·강화, analyzer 추출, 프로필 간 템플릿 결정성, RAG 기반 대화 응답, 저널 회상 중복 제거(회상이 현재 에피소드를 가리키지 않음), 그리고 아래 보고된 모든 핵심 수치를 고정하는 **결과 회귀(results-regression)** 테스트(README가 코드와 어긋날 수 없게 함) 커버 — 여기에 의미 임베더가 설치된 경우에만 실행되는 **opt-in 정직성 가드**(그 환경에선 순수 RAG가 이미 recall 1.00임을 검증 — Exp. 3의 공개된 임베더 의존성)를 더함.

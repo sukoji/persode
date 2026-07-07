@@ -315,6 +315,19 @@
         "target_mrr": 0.402
       }
     ],
+    "salience_prioritization": {
+      "similarity_is_tied": true,
+      "similarity_only_order": [
+        "neutral",
+        "significant"
+      ],
+      "fused_order": [
+        "significant",
+        "neutral"
+      ],
+      "fused_ranks_significant_first": true
+    },
+    "embedder_note": "The recall table uses the hashing (lexical) embedder; a semantic embedder makes similarity-only suffice. salience_prioritization is embedder-independent (identical text => identical similarity).",
     "why_filter": "The paper's claim is scoped to emotionally-significant long-term memories, so metrics are reported on exactly those queries.",
     "why_vague": "With verbatim-like probes, similarity-only already recalls the long-term target (see scoped_plain_probes); the fusion gain only appears when the probe is lexically distant from the stored episode.",
     "tradeoff": "Over the full query mix, fusion is net-neutral vs pure RAG (see full_set_vague): it reallocates capacity toward long-term emotional recall at a small cost on lexically-easy queries."

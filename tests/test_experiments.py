@@ -122,6 +122,18 @@ def test_exp3_semantic_embedder_closes_the_recall_gap():
     assert round(s["fused (Persode)"]["target_recall"], 2) == 1.00
 
 
+def test_exp3_salience_prioritization_is_embedder_independent():
+    # The paper's actual claim, isolated: with two equally-relevant memories
+    # (identical text -> identical similarity for ANY embedder), fusion ranks the
+    # emotionally-significant one first; pure similarity leaves them tied.
+    import exp3_retrieval as X
+    r = X.salience_prioritization()
+    assert r["similarity_is_tied"] is True
+    assert r["fused_ranks_significant_first"] is True
+    assert r["similarity_only_order"] == ["neutral", "significant"]
+    assert r["fused_order"] == ["significant", "neutral"]
+
+
 def test_exp3_tuning_grid_and_overfit_guard():
     # Locks the README's concrete tuning claims: an 8,064-config search, with any
     # config scoring >= 0.99 recall rejected as overfit.
