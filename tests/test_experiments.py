@@ -99,6 +99,29 @@ def test_exp3_robustness_is_not_cherry_picking():
         assert round(eval_all(replace(cfg, alpha=a))["fused (Persode)"]["target_recall"], 2) == 0.40
 
 
+def test_exp3_semantic_embedder_closes_the_recall_gap():
+    # Honesty guard for the disclosed embedder-dependence: with a real semantic
+    # embedder, pure similarity already recalls every target (1.00), so the
+    # hashing-embedder recall gain must not be sold as a universal win over RAG.
+    # Skips in the offline suite (CI installs [dev], not [semantic]).
+    import pytest
+    pytest.importorskip("sentence_transformers")
+    import _exp3_eval as E
+    from persode.embeddings import get_embedder
+
+    st = get_embedder("sentence-transformers")
+    orig = E._embedder
+    E._embedder = lambda: st
+    E._text_vec.cache_clear()
+    try:
+        s = E.eval_all(_exp3_cfg())
+    finally:
+        E._embedder = orig
+        E._text_vec.cache_clear()
+    assert round(s["similarity-only"]["target_recall"], 2) == 1.00
+    assert round(s["fused (Persode)"]["target_recall"], 2) == 1.00
+
+
 def test_exp3_tuning_grid_and_overfit_guard():
     # Locks the README's concrete tuning claims: an 8,064-config search, with any
     # config scoring >= 0.99 recall rejected as overfit.

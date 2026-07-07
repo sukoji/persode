@@ -102,7 +102,7 @@ python experiments/run_all.py     # regenerate every figure + JSON below
 
 **Exp. 3 — design & rationale.** The paper's retrieval claim is *scoped*: RAG should surface **emotionally-significant long-term** memories. So the metrics are reported on exactly those queries (objective bar: emotion E ≥ 0.6, target age > 6 d — not hand-picked per query), phrased as **vague paraphrases**. The vague phrasing is the whole point: a user recalls a *feeling* ("the emptiness after losing someone close") whose words don't overlap the stored episode ("lost my beloved dog"), which is where keyword-matching RAG breaks. Fusion weight α and top-k are grid-searched (8,064 configs, [`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); any config scoring ≥ 0.99 recall is rejected as overfit ([`tune_exp3_loop.py`](experiments/tune_exp3_loop.py)).
 
-Scoped result — 5 long-term emotional queries, vague probes, top-4:
+Scoped result — 5 long-term emotional queries, vague probes, top-4 (deterministic **hashing** embedder):
 
 | Strategy | target-recall@4 | target-MRR | topical-precision@4 |
 |---|---:|---:|---:|
@@ -117,6 +117,7 @@ Pure RAG recovers the target 2/5 times; fusing salience reaches 4/5, trading a h
 - **Full query mix (all 10 queries):** fused vs pure RAG recall is **0.70 vs 0.70** — net-neutral. The scoped gain is bought with a small cost on lexically-easy (recent/neutral) queries, which cancels out overall.
 - **Why vague probes:** on the *same* 5 long-term queries with plain phrasing, similarity-only already scores recall **1.00** — there is no gap to close, so lexical mismatch is the only discriminating regime.
 - **α is a plateau, not a magic value:** scoped recall is flat at **0.80 for α ∈ [0.5, 0.75]** (α = 0.5 has the best MRR); pure similarity (α = 1) and pure salience (α = 0) both fall to 0.40.
+- **Embedder-dependence (disclosed, important):** these numbers use the deterministic **hashing (lexical)** embedder. Re-run with a real semantic model — `PERSODE_EMBEDDER=sentence-transformers python experiments/exp3_retrieval.py` — and pure similarity already recalls **every** target (recall **1.00**), because the model understands that *"the emptiness after losing someone close"* ≈ *"lost my beloved dog"*. So the **recall gain shown above is what a weak/lexical embedder misses, not a universal win over semantic RAG.** Salience's embedder-independent contribution is **prioritization** — ranking the emotionally-significant memory first among *comparably-relevant* ones, which is the paper's actual claim and which a pure-recall metric on this small set does not isolate. We surface this rather than let the hashing-embedder number over-sell fusion.
 
 Per-query JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Exp. 4 transcripts (both profiles × both vignettes): [`results/exp4_journals.md`](results/exp4_journals.md).
 
@@ -126,7 +127,7 @@ Per-query JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Ex
 python -m pytest    # 35 tests, < 1 s, no network
 ```
 
-Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, template determinism across profiles, RAG-grounded conversation responses, journal recall de-duplication (a recall never points at the current episode), and **results-regression** tests that pin every headline number reported below (so the README can't drift from the code).
+Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, template determinism across profiles, RAG-grounded conversation responses, journal recall de-duplication (a recall never points at the current episode), and **results-regression** tests that pin every headline number reported below (so the README can't drift from the code) — plus one **opt-in honesty guard** that runs only with the semantic embedder installed, asserting pure RAG already recalls 1.00 there (the disclosed embedder-dependence of Exp. 3).
 
 ## Faithfulness to the paper
 
