@@ -106,12 +106,25 @@ def main() -> None:
 
     # ---- machine-readable results ----
     half_life = np.log(2) / DEFAULT_LAMBDA
+    # Same-age comparison at 30 days (what Panel B shows): consolidation keeps the
+    # emotional memory alive while an equally-old neutral one has decayed to ~0.
+    high_30 = curves["high emotion (E=0.95)"][-1]
+    neutral_30 = curves["neutral (E=0.15)"][-1]
     payload = {
         "lambda_per_day": DEFAULT_LAMBDA,
         "retention_at_6_days": r6,
         "half_life_days": half_life,
         "retention_samples": {str(int(d)): ebbinghaus_decay(d) for d in [0, 1, 3, 6, 12, 30]},
-        "crossover_note": "high-emotion memory strength exceeds neutral's initial strength for many days despite decay",
+        "strength_at_30_days": {
+            "high_emotion_E0.95": round(high_30, 4),
+            "neutral_E0.15": round(neutral_30, 4),
+            "ratio": round(high_30 / neutral_30, 1) if neutral_30 else None,
+        },
+        "consolidation_note": (
+            f"At 30 days, a high-salience memory retains strength S={high_30:.3f} "
+            f"while an equally-old neutral memory has decayed to S={neutral_30:.4f} "
+            f"(~{high_30 / neutral_30:.0f}x), so it survives well past the six-day window."
+        ),
     }
     (RESULTS / "exp1_forgetting_curve.json").write_text(json.dumps(payload, indent=2))
     print(f"half-life ~ {half_life:.2f} days")

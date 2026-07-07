@@ -10,5 +10,10 @@
     "12": 0.0625,
     "30": 0.0009765625000000009
   },
-  "crossover_note": "high-emotion memory strength exceeds neutral's initial strength for many days despite decay"
+  "strength_at_30_days": {
+    "high_emotion_E0.95": 0.0444,
+    "neutral_E0.15": 0.0003,
+    "ratio": 148.6
+  },
+  "consolidation_note": "At 30 days, a high-salience memory retains strength S=0.044 while an equally-old neutral memory has decayed to S=0.0003 (~149x), so it survives well past the six-day window."
 }
