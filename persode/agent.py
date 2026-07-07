@@ -20,6 +20,12 @@ from .onboarding import OnboardingPreferences
 from .store import MemoryStore, RetrievalResult
 from .templates import DiaryTemplate, FewShotTemplateSystem, VisualPrompt
 
+# A "reminded me of ..." recall must point at a *distinct* past episode. Anything
+# this close to the current utterance is the same event told again, not a memory
+# worth surfacing. Calibrated with wide margin: in the scenario, same-episode
+# duplicates score >= 0.82 while genuinely different episodes stay <= 0.37.
+_RELATED_DEDUP_SIM = 0.7
+
 
 @dataclass
 class JournalEntry:
@@ -114,7 +120,10 @@ class EpisodicMemoryAgent:
         # Retrieve related memories (excluding the one we just added would need
         # id filtering; here reinforcement is disabled to keep generation pure).
         retrieved = self.store.retrieve(utterance, top_k=top_k, now=now, reinforce=False)
-        related_events = [r.memory.event for r in retrieved if r.memory.id != memory.id]
+        related_events = [
+            r.memory.event for r in retrieved
+            if r.memory.id != memory.id and r.similarity < _RELATED_DEDUP_SIM
+        ]
 
         episode = self.analyzer.analyze(utterance)
 

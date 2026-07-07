@@ -25,7 +25,7 @@ soft anime illustration, a 15-year-old character, dyed yellow hair, no glasses, 
 
 **Diary**
 
-> Today tested my patience. I keep coming back to car splashed puddle water completely ruined favorite outfit. The anger of it still lingers. It reminded me of car splashed water ruined favorite outfit. I hope tomorrow feels a little lighter.
+> Today tested my patience. I keep coming back to car splashed puddle water completely ruined favorite outfit. The anger of it still lingers. I hope tomorrow feels a little lighter.
 
 #Splashed #Puddle #Water #Angry
 
@@ -60,7 +60,7 @@ soft anime illustration, a 27-year-old character, short black hair, wearing glas
 
 **Diary**
 
-> Today tested my patience. I keep coming back to car splashed puddle water completely ruined favorite outfit. The anger of it still lingers. It reminded me of car splashed water ruined favorite outfit. I hope tomorrow feels a little lighter.
+> Today tested my patience. I keep coming back to car splashed puddle water completely ruined favorite outfit. The anger of it still lingers. I hope tomorrow feels a little lighter.
 
 #Splashed #Puddle #Water #Angry
 
