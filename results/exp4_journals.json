@@ -1,5 +1,41 @@
 {
   "reference_now": "2025-01-24T12:00:00+00:00",
+  "personalization": {
+    "attribute_injection": "24/24",
+    "all_attributes_injected": true,
+    "all_prompts_differ": true,
+    "all_share_mood": true,
+    "per_vignette": [
+      {
+        "utterance": "I was scolded by my mom for spending all my allowance, I feel regretful.",
+        "emotion": "reflective",
+        "attrs_injected_A": [
+          6,
+          6
+        ],
+        "attrs_injected_B": [
+          6,
+          6
+        ],
+        "prompts_differ": true,
+        "shared_mood": true
+      },
+      {
+        "utterance": "A car splashed puddle water on me and completely ruined my favorite outfit!",
+        "emotion": "angry",
+        "attrs_injected_A": [
+          6,
+          6
+        ],
+        "attrs_injected_B": [
+          6,
+          6
+        ],
+        "prompts_differ": true,
+        "shared_mood": true
+      }
+    ]
+  },
   "profiles": {
     "Mina (15, emotional, trendy, dyed yellow hair)": [
       {

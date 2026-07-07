@@ -92,7 +92,7 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 | **1** | [망각곡선 보정](experiments/exp1_forgetting_curve.py) | `e^(−6λ)=0.25`(논문의 6일·~75% 감소)을 풀면 **λ = ln 4⁄6 ≈ 0.231/day**(반감기 3일); 30일 시점에 고현저성 기억은 **S ≈ 0.044**, 동일 나이 중립 기억은 **≈ 0.0003**(~150×)로 장기 생존. |
 | **2** | [Eq. 1 가중치 소거](experiments/exp2_memory_scoring.py) | 최근성이 절대 스케일을 지배; 감정 편향 가중치에서 한 달 된 강렬한 기억(`lost beloved dog`, E = 0.95)이 균형값의 **×2.6** 점수를 받아 저장소 순위 **7위 → 5위**로 상승 — Eq. 1이 의도한 롱테일 재정렬. |
 | **3** | [현저성 인식 검색](experiments/exp3_retrieval.py) | 장기·어휘적으로 먼 감정 질의에서 융합이 target-recall을 순수 RAG 대비 **0.40 → 0.80**으로 상승 — *한정된* 승리(전체 질의에선 net-neutral; 아래 근거·robustness). |
-| **4** | [Dual-Template 생성](experiments/exp4_visual_prompt.py) | 한 발화 → 성찰 일기 **및** DALL·E용 시각 프롬프트; 동일 사건도 온보딩 프로필에 따라 다른 프롬프트 산출. |
+| **4** | [Dual-Template 생성](experiments/exp4_visual_prompt.py) | 한 발화 → 성찰 일기 **및** DALL·E용 시각 프롬프트. 개인화를 *보여주기만* 하지 않고 검증: **온보딩 속성 24/24 주입**, 두 프로필 프롬프트는 정체성에서 다르되 감정 무드는 공유. |
 
 <p align="center">
   <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — 망각곡선">
@@ -123,7 +123,7 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 ## 테스트
 
 ```bash
-python -m pytest    # 36개 테스트, < 2초, 네트워크 불필요
+python -m pytest    # 37개 테스트, < 2초, 네트워크 불필요
 ```
 
 감쇠 보정·클램핑, Eq. 1 점수/가중치 정규화/통합, 검색 융합·강화, analyzer 추출, 프로필 간 템플릿 결정성, RAG 기반 대화 응답, 저널 회상 중복 제거(회상이 현재 에피소드를 가리키지 않음), 그리고 아래 보고된 모든 핵심 수치를 고정하는 **결과 회귀(results-regression)** 테스트(README가 코드와 어긋날 수 없게 함) 커버 — 여기에 의미 임베더가 설치된 경우에만 실행되는 **opt-in 정직성 가드**(그 환경에선 순수 RAG가 이미 recall 1.00임을 검증 — Exp. 3의 공개된 임베더 의존성)를 더함.

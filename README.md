@@ -93,7 +93,7 @@ python experiments/run_all.py     # regenerate every figure + JSON below
 | **1** | [Forgetting-curve calibration](experiments/exp1_forgetting_curve.py) | Solving `e^(−6λ)=0.25` (the paper's six-day, ~75 % drop) gives **λ = ln 4⁄6 ≈ 0.231/day** (half-life 3 d); at 30 days a high-salience memory still scores **S ≈ 0.044** vs **≈ 0.0003** for an equally-old neutral one (~150×). |
 | **2** | [Eq. 1 weight ablation](experiments/exp2_memory_scoring.py) | Recency dominates the absolute scale; emotion-heavy weights score a month-old intense memory (`lost beloved dog`, E = 0.95) at **×2.6** its balanced value, lifting it from **7th → 5th** in the store — the long-tail reordering Eq. 1 intends. |
 | **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | On long-term, lexically-distant emotional queries, fusion lifts target-recall **0.40 → 0.80** over pure RAG — a *scoped* win (net-neutral on the full query mix; rationale + robustness below). |
-| **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → a reflective diary **and** a DALL·E-ready visual prompt; the same event yields different prompts under different onboarding profiles. |
+| **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → a reflective diary **and** a DALL·E-ready visual prompt. Personalization is verified, not just shown: **24/24 onboarding attributes injected**, both profiles' prompts differ on identity yet share the emotion-driven mood. |
 
 <p align="center">
   <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — forgetting curve">
@@ -124,7 +124,7 @@ Per-query JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Ex
 ## Tests
 
 ```bash
-python -m pytest    # 36 tests, < 2 s, no network
+python -m pytest    # 37 tests, < 2 s, no network
 ```
 
 Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, template determinism across profiles, RAG-grounded conversation responses, journal recall de-duplication (a recall never points at the current episode), and **results-regression** tests that pin every headline number reported below (so the README can't drift from the code) — plus one **opt-in honesty guard** that runs only with the semantic embedder installed, asserting pure RAG already recalls 1.00 there (the disclosed embedder-dependence of Exp. 3).

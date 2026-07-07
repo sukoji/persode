@@ -134,6 +134,17 @@ def test_exp3_salience_prioritization_is_embedder_independent():
     assert r["fused_order"] == ["significant", "neutral"]
 
 
+def test_exp4_personalization_is_verified():
+    # The onboarding -> visual personalization claim, quantified: every onboarding
+    # attribute is injected, the two profiles differ, and they share the emotion mood.
+    import exp4_visual_prompt as X
+    p = X.personalization_check()
+    assert p["attribute_injection"] == "24/24"
+    assert p["all_attributes_injected"] is True
+    assert p["all_prompts_differ"] is True
+    assert p["all_share_mood"] is True
+
+
 def test_exp3_tuning_grid_and_overfit_guard():
     # Locks the README's concrete tuning claims: an 8,064-config search, with any
     # config scoring >= 0.99 recall rejected as overfit.
