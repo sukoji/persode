@@ -92,7 +92,7 @@ python experiments/run_all.py     # regenerate every figure + JSON below
 |---|---|---|
 | **1** | [Forgetting-curve calibration](experiments/exp1_forgetting_curve.py) | Solving `e^(−6λ)=0.25` (the paper's six-day, ~75 % drop) gives **λ = ln 4⁄6 ≈ 0.231/day** (half-life 3 d); at 30 days a high-salience memory still scores **S ≈ 0.044** vs **≈ 0.0003** for an equally-old neutral one (~150×). |
 | **2** | [Eq. 1 weight ablation](experiments/exp2_memory_scoring.py) | Recency dominates the absolute scale; emotion-heavy weights score a month-old intense memory (`lost beloved dog`, E = 0.95) at **×2.6** its balanced value, lifting it from **7th → 5th** in the store — the long-tail reordering Eq. 1 intends. |
-| **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | On long-term, lexically-distant emotional queries, fused retrieval beats pure RAG (table below). |
+| **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | On long-term, lexically-distant emotional queries, fusion lifts target-recall **0.40 → 0.80** over pure RAG — a *scoped* win (net-neutral on the full query mix; rationale + robustness below). |
 | **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → a reflective diary **and** a DALL·E-ready visual prompt; the same event yields different prompts under different onboarding profiles. |
 
 <p align="center">

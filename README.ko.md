@@ -91,7 +91,7 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 |---|---|---|
 | **1** | [망각곡선 보정](experiments/exp1_forgetting_curve.py) | `e^(−6λ)=0.25`(논문의 6일·~75% 감소)을 풀면 **λ = ln 4⁄6 ≈ 0.231/day**(반감기 3일); 30일 시점에 고현저성 기억은 **S ≈ 0.044**, 동일 나이 중립 기억은 **≈ 0.0003**(~150×)로 장기 생존. |
 | **2** | [Eq. 1 가중치 소거](experiments/exp2_memory_scoring.py) | 최근성이 절대 스케일을 지배; 감정 편향 가중치에서 한 달 된 강렬한 기억(`lost beloved dog`, E = 0.95)이 균형값의 **×2.6** 점수를 받아 저장소 순위 **7위 → 5위**로 상승 — Eq. 1이 의도한 롱테일 재정렬. |
-| **3** | [현저성 인식 검색](experiments/exp3_retrieval.py) | 장기·어휘적으로 먼 감정 질의에서 융합 검색이 순수 RAG를 능가(아래 표). |
+| **3** | [현저성 인식 검색](experiments/exp3_retrieval.py) | 장기·어휘적으로 먼 감정 질의에서 융합이 target-recall을 순수 RAG 대비 **0.40 → 0.80**으로 상승 — *한정된* 승리(전체 질의에선 net-neutral; 아래 근거·robustness). |
 | **4** | [Dual-Template 생성](experiments/exp4_visual_prompt.py) | 한 발화 → 성찰 일기 **및** DALL·E용 시각 프롬프트; 동일 사건도 온보딩 프로필에 따라 다른 프롬프트 산출. |
 
 <p align="center">
