@@ -100,7 +100,7 @@ python experiments/run_all.py     # regenerate every figure + JSON below
   <img src="results/exp3_retrieval.png" width="49%" alt="Exp 3 — retrieval vs baselines">
 </p>
 
-**Exp. 3 — design & rationale.** The paper's retrieval claim is *scoped*: RAG should surface **emotionally-significant long-term** memories. So the metrics are reported on exactly those queries (objective bar: emotion E ≥ 0.6, target age > 6 d — not hand-picked per query), phrased as **vague paraphrases**. The vague phrasing is the whole point: a user recalls a *feeling* ("the emptiness after losing someone close") whose words don't overlap the stored episode ("lost my beloved dog"), which is where keyword-matching RAG breaks. Fusion weight α and top-k are grid-searched ([`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); headline-perfect configs are rejected as overfit.
+**Exp. 3 — design & rationale.** The paper's retrieval claim is *scoped*: RAG should surface **emotionally-significant long-term** memories. So the metrics are reported on exactly those queries (objective bar: emotion E ≥ 0.6, target age > 6 d — not hand-picked per query), phrased as **vague paraphrases**. The vague phrasing is the whole point: a user recalls a *feeling* ("the emptiness after losing someone close") whose words don't overlap the stored episode ("lost my beloved dog"), which is where keyword-matching RAG breaks. Fusion weight α and top-k are grid-searched (8,064 configs, [`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); any config scoring ≥ 0.99 recall is rejected as overfit ([`tune_exp3_loop.py`](experiments/tune_exp3_loop.py)).
 
 Scoped result — 5 long-term emotional queries, vague probes, top-4:
 
@@ -123,7 +123,7 @@ Per-query JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Ex
 ## Tests
 
 ```bash
-python -m pytest    # 32 tests, < 1 s, no network
+python -m pytest    # 33 tests, < 1 s, no network
 ```
 
 Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, template determinism across profiles, journal recall de-duplication (a recall never points at the current episode), and **results-regression** tests that pin every headline number reported below (so the README can't drift from the code).

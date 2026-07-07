@@ -97,3 +97,13 @@ def test_exp3_robustness_is_not_cherry_picking():
         assert round(eval_all(replace(cfg, alpha=a))["fused (Persode)"]["target_recall"], 2) == 0.80
     for a in (0.0, 1.0):
         assert round(eval_all(replace(cfg, alpha=a))["fused (Persode)"]["target_recall"], 2) == 0.40
+
+
+def test_exp3_tuning_grid_and_overfit_guard():
+    # Locks the README's concrete tuning claims: an 8,064-config search, with any
+    # config scoring >= 0.99 recall rejected as overfit.
+    import tune_exp3_loop as t
+    assert len(t._grid()) == 8064
+    assert t._MAX_HEADLINE == 0.99
+    assert t._credible({"target_recall": 0.99, "long_term_recall": 0.5}) is False
+    assert t._credible({"target_recall": 0.80, "long_term_recall": 0.80}) is True

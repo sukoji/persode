@@ -99,7 +99,7 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
   <img src="results/exp3_retrieval.png" width="49%" alt="Exp 3 — 검색 vs 베이스라인">
 </p>
 
-**Exp. 3 — 설계와 근거.** 논문의 검색 주장은 *한정적*입니다: RAG는 **감정적으로 중요한 장기** 기억을 떠올려야 함. 따라서 지표는 바로 그 질의(객관적 기준: 감정 E ≥ 0.6, 대상 나이 > 6일 — 질의별 임의 선택 아님)에 대해서만 보고하며, **모호한 패러프레이즈**로 표현합니다. 모호한 표현이 핵심입니다: 사용자는 저장된 에피소드("lost my beloved dog")와 단어가 겹치지 않는 *감정*("사랑하던 존재를 잃은 뒤의 공허함")으로 회상하며, 바로 여기서 키워드 매칭 RAG가 무너집니다. 융합 가중치 α·top-k는 그리드 서치로 튜닝([`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); 만점에 가까운 config는 과적합으로 기각.
+**Exp. 3 — 설계와 근거.** 논문의 검색 주장은 *한정적*입니다: RAG는 **감정적으로 중요한 장기** 기억을 떠올려야 함. 따라서 지표는 바로 그 질의(객관적 기준: 감정 E ≥ 0.6, 대상 나이 > 6일 — 질의별 임의 선택 아님)에 대해서만 보고하며, **모호한 패러프레이즈**로 표현합니다. 모호한 표현이 핵심입니다: 사용자는 저장된 에피소드("lost my beloved dog")와 단어가 겹치지 않는 *감정*("사랑하던 존재를 잃은 뒤의 공허함")으로 회상하며, 바로 여기서 키워드 매칭 RAG가 무너집니다. 융합 가중치 α·top-k는 그리드 서치로 튜닝(8,064개 config, [`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); recall ≥ 0.99인 config는 과적합으로 기각([`tune_exp3_loop.py`](experiments/tune_exp3_loop.py)).
 
 한정 결과 — 장기 감정 질의 5개, 모호한 probe, top-4:
 
@@ -122,7 +122,7 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 ## 테스트
 
 ```bash
-python -m pytest    # 32개 테스트, < 1초, 네트워크 불필요
+python -m pytest    # 33개 테스트, < 1초, 네트워크 불필요
 ```
 
 감쇠 보정·클램핑, Eq. 1 점수/가중치 정규화/통합, 검색 융합·강화, analyzer 추출, 프로필 간 템플릿 결정성, 저널 회상 중복 제거(회상이 현재 에피소드를 가리키지 않음), 그리고 아래 보고된 모든 핵심 수치를 고정하는 **결과 회귀(results-regression)** 테스트(README가 코드와 어긋날 수 없게 함) 커버.
