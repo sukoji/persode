@@ -9,37 +9,42 @@
 Reproduces the algorithmic core of
 [*Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent*](https://arxiv.org/abs/2508.20585) (Jin et al., 2025)
 
+🏆 **Best Oral Presentation — ICES 2025**
+
+[![ICES 2025 Best Oral Presentation](https://img.shields.io/badge/ICES%202025-Best%20Oral%20Presentation-f0b400.svg?logo=awardslabs&logoColor=white)](https://arxiv.org/abs/2508.20585)
 [![arXiv](https://img.shields.io/badge/arXiv-2508.20585-b31b1b.svg)](https://arxiv.org/abs/2508.20585)
 [![Python](https://img.shields.io/badge/python-3.9%2B-2a78d6.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-25%20passing-1baf7a.svg)](tests)
+[![CI](https://github.com/sukoji/persode/actions/workflows/ci.yml/badge.svg)](https://github.com/sukoji/persode/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-52514e.svg)](LICENSE)
-[![No API key required](https://img.shields.io/badge/API%20key-not%20required-52514e.svg)](#design-choices)
+[![No API key required](https://img.shields.io/badge/API%20key-not%20required-52514e.svg)](#faithfulness-to-the-paper)
 
 </div>
 
 ---
 
-People don't remember everything equally: recent events fade fast, but emotionally intense, frequently recalled moments stick. Persode builds a journaling chatbot on exactly that observation — an **Ebbinghaus forgetting curve** governs short-term memory, a **memory-strength score** decides what survives into long-term storage, and retrieval fuses **semantic similarity with emotional salience** so that the right memory resurfaces at the right moment. The remembered episode is then rendered as an **illustrated diary entry**: a reflective text plus a personalized image-generation prompt.
+Persode is a journaling chatbot that treats memory the way people do: recent events fade on an **Ebbinghaus curve**, emotionally intense ones **consolidate** into long-term storage, and retrieval resurfaces them by **fusing semantic similarity with emotional salience** — then renders the recalled episode as an illustrated diary entry (reflective text + a personalized image prompt).
 
-This repository implements that entire pipeline **deterministically and offline** — every equation, threshold, and template is inspectable, unit-tested, and reproducible without any paid API. Optional GPT-4o / DALL·E 3 adapters slot in behind the same interfaces.
+This repository is a **deterministic, offline reference implementation of that memory core**. The paper's GPT-4o / DALL·E 3 calls are replaced by transparent, inspectable stubs so the memory model — Eq. 1 and the retrieval it drives — can be unit-tested and reproduced with no paid API. Optional adapters ([`persode/llm.py`](persode/llm.py)) restore the original LLM pipeline.
+
+> **Scope in one line.** The paper contributes an integrated *system design*; it reports **no quantitative evaluation** (it names user testing as future work). This repo therefore implements and self-validates the **algorithmic mechanisms** — it does not reproduce paper numbers, because there are none. See [Faithfulness to the paper](#faithfulness-to-the-paper).
 
 ## Architecture
 
 <p align="center">
   <img src="docs/figure2_overview.png" width="92%" alt="Figure 2 from Jin et al. (2025): Persode system architecture — onboarding, memory-aware conversation, visual journal creation">
 </p>
-<p align="center"><sub><b>Figure 2</b> from the <a href="https://arxiv.org/abs/2508.20585">paper</a> — system overview: (1) onboarding preferences setup, (2) memory-aware conversation, (3) visual journal creation. Every block below maps to a module in <code>persode/</code>; the GPT-4o / DALL·E 3 blocks are replaced offline by deterministic equivalents.</sub></p>
+<p align="center"><sub><b>Figure 2</b> from the <a href="https://arxiv.org/abs/2508.20585">paper</a>. Each block maps to a module in <code>persode/</code>; the GPT-4o / DALL·E 3 blocks are replaced offline by deterministic equivalents.</sub></p>
 
-| Module | Paper component | What it does |
+| Module | Paper | Role |
 |---|---|---|
-| [`persode/memory.py`](persode/memory.py) | §3.2, Eq. 1 | Ebbinghaus decay `d(Δt)=e^(−λΔt)` calibrated to a 25 % retention at day 6, and Memory-Strength Scoring `S = d(Δt)·(wE·E + wR·R + wC·C)/(wE+wR+wC)` with salience-modulated consolidation |
-| [`persode/analyzer.py`](persode/analyzer.py) | Fig. 2 | Event-Emotion Analyzer: utterance → event, emotion, intensity E, hashtags (offline lexicon or GPT-4o) |
-| [`persode/store.py`](persode/store.py) | Fig. 2 | Vector store + **Memory Selection Block**: retrieval fusing cosine similarity with salience; recall reinforces a memory and resets its decay clock |
-| [`persode/embeddings.py`](persode/embeddings.py) | — | Pluggable embedders: offline hashing (default) or sentence-transformers |
-| [`persode/onboarding.py`](persode/onboarding.py) | §3.1 | Onboarding preferences → chatbot persona prompt + visual identity |
-| [`persode/templates.py`](persode/templates.py) | §3.3, §4.3–4.4 | **Dual-Template framework**: reflective diary template + few-shot visual-prompt template |
-| [`persode/agent.py`](persode/agent.py) | Fig. 2 | `EpisodicMemoryAgent` — ingest → retrieve → respond → journal |
-| [`persode/llm.py`](persode/llm.py) | §4.1 | Optional GPT-4o / DALL·E 3 adapters with offline stubs |
+| [`memory.py`](persode/memory.py) | §4.2, Eq. 1 | Ebbinghaus decay `d(Δt)=e^(−λΔt)` and Memory-Strength Scoring `S = d(Δt)·(wE·E+wR·R+wC·C)/(wE+wR+wC)`, with salience-modulated consolidation |
+| [`analyzer.py`](persode/analyzer.py) | §4.2 | Event-Emotion Analyzer: utterance → event, emotion, intensity E, hashtags |
+| [`store.py`](persode/store.py) | §3.2 | Vector store + Memory Selection Block: retrieval fusing cosine similarity with salience; recall reinforces a memory and resets its decay clock |
+| [`onboarding.py`](persode/onboarding.py) | §3.1, §4.1 | Onboarding preferences → chatbot persona + visual identity |
+| [`templates.py`](persode/templates.py) | §3.3, §4.3 | Dual-Template framework: reflective diary template + few-shot visual-prompt template |
+| [`agent.py`](persode/agent.py) | Fig. 2 | `EpisodicMemoryAgent` — ingest → retrieve → respond → journal |
+| [`embeddings.py`](persode/embeddings.py) | — | Pluggable embedders: offline hashing (default) or sentence-transformers |
+| [`llm.py`](persode/llm.py) | §4.1, §4.3 | Optional GPT-4o / DALL·E 3 adapters with offline stubs |
 
 ## Quickstart
 
@@ -68,55 +73,35 @@ print(entry.visual_prompt.prompt)  # personalized image-generation prompt
 
 Optional extras: `pip install -e ".[semantic]"` (sentence-transformers), `".[openai]"` (GPT-4o / DALL·E adapters), `".[dev]"` (pytest).
 
-## Experiments
+## Reproducing the experiments
 
-Four standalone scripts under [`experiments/`](experiments) validate each mechanism against the paper's claims. All are deterministic (fixed reference clock, hand-labelled scenario in [`experiments/_scenario.py`](experiments/_scenario.py)) and run offline in seconds, writing figures + machine-readable JSON to [`results/`](results).
+The paper reports no benchmark, so these four scripts are **the implementation's own deterministic checks** that each mechanism behaves as the paper describes qualitatively. All run offline in seconds against a fixed reference clock and a hand-labelled scenario ([`experiments/_scenario.py`](experiments/_scenario.py)), writing figures + machine-readable JSON to [`results/`](results).
 
 ```bash
-python experiments/run_all.py          # regenerate every figure + JSON
-python experiments/exp1_forgetting_curve.py
-python experiments/exp2_memory_scoring.py
-python experiments/exp3_retrieval.py   # uses results/exp3_tuned_config.json if present
-python experiments/exp4_visual_prompt.py
-python experiments/tune_exp3_loop.py   # hyperparameter search for Exp. 3 only
+python experiments/run_all.py     # regenerate every figure + JSON below
 ```
 
-### Exp. 1 — Forgetting-curve calibration
-
-The paper anchors short-term memory to a six-day window with a ~75 % retention drop. Solving `e^(−6λ) = 0.25` gives **λ = ln 4⁄6 ≈ 0.231/day** (half-life 3 days); the assertion in the script verifies the calibration to machine precision. The right panel shows the consolidation mechanism: salience slows the decay (`λ_eff = λ·(1 − γ·k)`), so an emotionally intense memory is still retrievable after a month while a neutral one has effectively vanished.
-
-<p align="center"><img src="results/exp1_forgetting_curve.png" width="90%" alt="Exp 1 — Ebbinghaus decay calibration and salience-modulated retention"></p>
-
-### Exp. 2 — Memory-Strength Scoring (Eq. 1) weight ablation
-
-Ten scenario memories scored under four (wE, wR, wC) weightings. Two things to read off the plot: recency dominates the *absolute* scale (the two youngest emotional events top the board — the short-term window at work), and the weights control *what survives aging* — under emotion-heavy weights the month-old "lost beloved dog" memory scores **×2.6** its balanced value, reordering the long tail exactly as Eq. 1 intends.
-
-<p align="center"><img src="results/exp2_memory_scoring.png" width="85%" alt="Exp 2 — Eq. 1 weight ablation dot plot"></p>
-
-### Exp. 3 — Salience-aware retrieval (Memory Selection Block)
-
-Three retrieval strategies compared on **five long-term emotional queries** (targets older than the six-day window) with **vague paraphrases** — low lexical overlap with stored memory text, so pure RAG cannot rely on keyword matching alone. Hyperparameters tuned via grid search ([`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); configs with headline-perfect scores are rejected as overfit.
-
-| Strategy | target-recall@4 | target-MRR | topical-precision@4 | long-term recall@4 |
-|---|---:|---:|---:|---:|
-| recency-only (short buffer) | 0.00 | 0.00 | 0.65 | 0.00 |
-| similarity-only (pure RAG) | 0.40 | 0.40 | **1.00** | 0.40 |
-| **fused (Persode, α = 0.5)** | **0.80** | **0.56** | 0.95 | **0.80** |
-
-**How to read this.** A recency buffer structurally scores 0 on long-term recall. When probes are emotionally phrased but lexically distant from the stored episode text, similarity-only RAG recovers the target only **2/5** times; the fused score (α = 0.5, top-4) reaches **4/5** by combining semantic similarity with emotional salience — a clear win without suspicious perfect scores. Full per-query breakdown: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Re-tune: `python experiments/tune_exp3_loop.py`.
-
-<p align="center"><img src="results/exp3_retrieval.png" width="85%" alt="Exp 3 — retrieval quality vs baselines"></p>
-
-### Exp. 4 — Dual-Template journal generation
-
-The paper's flagship vignettes end-to-end: one dialogue turn becomes a reflective diary entry **and** a DALL·E-ready visual prompt. Running identical utterances under two contrasting onboarding profiles changes the visual prompt deterministically — same event, different person:
-
-| | Profile **Mina** (15, trendy, city) | Profile **Jun** (27, minimal, nature) |
+| # | Checks | Headline |
 |---|---|---|
-| Detected episode | `angry`, E = 0.96 | `angry`, E = 0.96 |
-| Visual prompt | soft anime illustration, **a 15-year-old character, dyed yellow hair, no glasses, trendy fashion, vibrant city background**, depicting car splashed puddle water…, tense dramatic lighting, stormy frustrated mood | soft anime illustration, **a 27-year-old character, short black hair, wearing glasses, minimal fashion, minimal nature background**, depicting car splashed puddle water…, tense dramatic lighting, stormy frustrated mood |
+| **1** | [Forgetting-curve calibration](experiments/exp1_forgetting_curve.py) | Solving `e^(−6λ)=0.25` (the paper's six-day, ~75 % drop) gives **λ = ln 4⁄6 ≈ 0.231/day**; salience-slowed decay keeps an intense memory retrievable a month out while a neutral one vanishes. |
+| **2** | [Eq. 1 weight ablation](experiments/exp2_memory_scoring.py) | Recency dominates the absolute scale; emotion-heavy weights let a month-old intense memory score **×2.6** its balanced value, reordering the long tail as Eq. 1 intends. |
+| **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | On long-term, lexically-distant emotional queries, fused retrieval beats pure RAG (table below). |
+| **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → a reflective diary **and** a DALL·E-ready visual prompt; the same event yields different prompts under different onboarding profiles. |
 
-Full transcripts (both profiles × both vignettes, diaries included): [`results/exp4_journals.md`](results/exp4_journals.md)
+<p align="center">
+  <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — forgetting curve">
+  <img src="results/exp3_retrieval.png" width="49%" alt="Exp 3 — retrieval vs baselines">
+</p>
+
+**Exp. 3 detail.** Five long-term emotional queries (targets older than the six-day window) phrased as vague paraphrases, so pure keyword matching cannot win. Fusion weight and top-k tuned by grid search ([`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); headline-perfect configs are rejected as overfit.
+
+| Strategy | target-recall@4 | target-MRR | topical-precision@4 |
+|---|---:|---:|---:|
+| recency-only (short buffer) | 0.00 | 0.00 | 0.65 |
+| similarity-only (pure RAG) | 0.40 | 0.40 | **1.00** |
+| **fused (α = 0.5)** | **0.80** | **0.56** | 0.95 |
+
+Pure RAG recovers the target only 2/5 times when probes are emotionally phrased but lexically distant; fusing similarity with salience reaches 4/5 — without a suspicious perfect score. Per-query JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Exp. 4 transcripts (both profiles × both vignettes): [`results/exp4_journals.md`](results/exp4_journals.md).
 
 ## Tests
 
@@ -124,29 +109,39 @@ Full transcripts (both profiles × both vignettes, diaries included): [`results/
 python -m pytest    # 25 tests, < 1 s, no network
 ```
 
-Covering: decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, and template determinism across profiles.
+Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, and template determinism across profiles.
 
-## Design choices
+## Faithfulness to the paper
 
-- **Offline-first.** The paper's pipeline calls GPT-4o and DALL·E 3; this implementation replaces both with transparent deterministic components (lexicon analyzer, template composer, hashing embedder) so the *memory mathematics* — the paper's actual contribution — can be tested in isolation. The LLM adapters in [`persode/llm.py`](persode/llm.py) restore the paper's original configuration.
-- **Consolidation over plain decay.** A single fixed exponential would erase *every* memory within a month — the opposite of the paper's long-term store. Following Levels-of-Processing, salience slows decay (`λ_eff = λ·(1 − γ·k)`), which is what produces the crossover in Exp. 1.
-- **Reinforcement.** Retrieving a memory bumps its recall count and resets its decay clock (spaced repetition, as in MemoryBank/LUFY) — significant memories that keep coming up stay alive.
+Because the paper specifies the *system* precisely but leaves numeric details open, this repo separates what it takes from the paper from what it operationalizes.
 
-## Scope & limitations
+**Taken directly from the paper**
+- **Eq. 1** Memory-Strength Scoring, verbatim (§4.2).
+- **Ebbinghaus decay** `d(Δt)=e^(−λΔt)`, given in §4.2 as the example decay form.
+- **Six-day short-term window with a ~75 % retention drop** (§3.2) — the anchor for the λ calibration.
+- **Dual-Template** diary + visual-prompt framework (§3.3, §4.3), onboarding → persona/visual identity (§3.1, §4.1), Event-Emotion Analyzer, and the RAG-based Memory Selection Block that "prioritizes emotionally significant memories" (§3.2, described qualitatively).
 
-- The UX study (N = 20) and actual image generation from the paper are out of scope; offline text output is intentionally template-simple.
-- The evaluation scenario is a small hand-labelled synthetic set built from the paper's own vignettes — good for verifying mechanisms, not a public benchmark. Exp. 3 reports per-query JSON so every aggregate number is auditable.
+**Operationalized here (paper leaves it unspecified)**
+- **λ = ln 4⁄6** — derived from the paper's own 6-day/25 %-retention statement, not stated numerically in the text.
+- **Consolidation `λ_eff = λ·(1 − γ·k)`** — an *extension*, not in the paper: a single fixed exponential would erase every memory within a month, contradicting the described long-term store. Motivated by Craik & Lockhart's Levels-of-Processing.
+- **Retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5** — a concrete rendering of the paper's qualitative "fuse similarity with emotional salience"; the α value is ours.
+- **Offline stubs** — lexicon analyzer, template composer, hashing embedder stand in for GPT-4o / DALL·E 3 so the memory math is testable in isolation. [`persode/llm.py`](persode/llm.py) restores the paper's LLM configuration.
+- **Reinforcement** — recall bumps frequency and resets the decay clock (spaced repetition, as in MemoryBank / LUFY).
+
+**Out of scope**
+- The paper's own future-work **user study** and real **image generation** — there are no paper numbers to reproduce, and offline text output is intentionally template-simple.
+- The evaluation scenario is a small hand-labelled synthetic set from the paper's vignettes — good for verifying mechanisms, not a public benchmark. Every Exp. 3 aggregate is auditable via per-query JSON.
 - The offline lexicon analyzer is keyword-based; nuanced or sarcastic emotion needs the LLM backend.
-- **What is not a separate experiment script:** α fusion ablation plots, sentence-transformer vs hashing embedder comparison, reinforcement-over-time curves, and the paper's user study — the core four scripts above cover the implementable offline mechanisms only.
 
 ## Citation
 
 ```bibtex
-@article{jin2025persode,
-  title   = {Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent},
-  author  = {Jin et al.},
-  journal = {arXiv preprint arXiv:2508.20585},
-  year    = {2025}
+@inproceedings{jin2025persode,
+  title     = {Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent},
+  author    = {Jin et al.},
+  booktitle = {ICES},
+  year      = {2025},
+  note      = {Best Oral Presentation. arXiv:2508.20585}
 }
 ```
 

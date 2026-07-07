@@ -66,12 +66,14 @@ def main() -> None:
                   f"(neutral queries, n={res['neutral_query_count']})")
 
     style.apply()
-    # Chart metrics must match the README table — skip N/A columns.
+    # Chart metrics must match the README table. Under the emotional_long filter
+    # every probe is a long-term target, so long-term recall is identical to
+    # target-recall by construction — showing it as a separate bar would double-
+    # count the same win, so it is reported in JSON only, not plotted.
     metric_defs = [
         (f"target-recall@{top_k}", "target_recall", style.BLUE),
         (f"target-MRR", "target_mrr", style.AQUA),
         (f"topical-precision@{top_k}", "topical_precision", style.YELLOW),
-        (f"long-term recall@{top_k}", "long_term_recall", style.VIOLET),
     ]
     metrics = [
         (label, key, color) for label, key, color in metric_defs
