@@ -67,11 +67,11 @@ print(entry.diary)
 print(entry.visual_prompt.prompt)
 ```
 
-선택적 확장: `".[semantic]"` (sentence-transformers), `".[openai]"` (GPT-4o / DALL·E), `".[dev]"` (pytest).
+선택적 확장: `pip install -e ".[semantic]"` (sentence-transformers), `".[openai]"` (GPT-4o / DALL·E), `".[dev]"` (pytest).
 
 ## 실험
 
-네 개의 결정론적 스크립트가 기억 모델의 각 메커니즘을 검증합니다. 고정 기준 시계와 수작업 라벨 시나리오([`experiments/_scenario.py`](experiments/_scenario.py))로 매 실행이 비트 단위로 동일하며, 그림과 기계 판독 JSON을 [`results/`](results)에 씁니다. 라벨은 객관적입니다(`E ≥ 0.6` = 중요, `나이 > 6일` = 장기).
+네 개의 결정론적 스크립트가 시스템의 각 메커니즘을 검증합니다. 고정 기준 시계와 수작업 라벨 시나리오([`experiments/_scenario.py`](experiments/_scenario.py))로 매 실행이 비트 단위로 동일하며, 그림과 기계 판독 JSON을 [`results/`](results)에 씁니다. 라벨은 객관적입니다(`E ≥ 0.6` = 중요, `나이 > 6일` = 장기).
 
 ```bash
 python experiments/run_all.py
