@@ -1,7 +1,7 @@
 cff-version: 1.2.0
-message: "This repository is a reference implementation. If you use it, please cite the original paper below."
-title: "Persode — reference implementation"
-abstract: "Deterministic, offline reference implementation of the episodic memory-aware journaling core of Persode (Jin et al., 2025)."
+message: "If you use this software, please cite the paper below."
+title: "Persode"
+abstract: "Official implementation of Persode (Jin et al., 2025): a deterministic, offline episodic memory-aware journaling core."
 repository-code: "https://github.com/sukoji/persode"
 license: MIT
 type: software

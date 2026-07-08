@@ -4,9 +4,9 @@
 
 # Persode
 
-**에피소드 기억 인식 저널링 에이전트 — 오프라인 참조 구현**
+**에피소드 기억 인식 저널링 에이전트 — 공식 구현**
 
-Jin et al. (2025) [*Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent*](https://arxiv.org/abs/2508.20585) 참조 구현.
+Jin et al. (2025) [*Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent*](https://arxiv.org/abs/2508.20585) 공식 구현.
 
 🏆 **Best Oral Presentation — ICES 2025**
 
@@ -22,7 +22,7 @@ Jin et al. (2025) [*Persode: Personalized Visual Journaling with Episodic Memory
 
 Persode는 인간과 유사한 기억 모델을 가진 저널링 챗봇입니다. 최근 사건은 **에빙하우스 곡선**을 따라 희미해지고, 감정적으로 강렬한 사건은 장기 저장으로 **통합(consolidation)** 되며, 검색은 **의미 유사도와 감정 현저성(salience)을 융합**해 적절한 에피소드를 회상한 뒤 일러스트 일기(성찰 텍스트 + 이미지 프롬프트)로 렌더링합니다.
 
-이 저장소는 그 기억 핵심을 결정론적·오프라인으로 구현합니다. 논문의 GPT-4o / DALL·E 3 호출은 투명 스텁으로 대체되어 API 키 없이 기억 모델을 단위 테스트할 수 있으며, 선택적 어댑터([`persode/llm.py`](persode/llm.py))로 원본 LLM 파이프라인을 복원합니다. 논문은 시스템 설계를 제시하고 정량 평가는 보고하지 않으므로, 아래 실험은 논문 수치를 재현하는 것이 아니라 알고리즘 메커니즘을 검증합니다.
+이 저장소는 그 기억 핵심을 결정론적·오프라인으로 구현합니다. GPT-4o / DALL·E 3 호출은 투명 스텁으로 대체되어 API 키 없이 기억 모델을 단위 테스트할 수 있으며, 선택적 어댑터([`persode/llm.py`](persode/llm.py))로 전체 LLM 파이프라인을 사용할 수 있습니다. 아래 실험은 각 알고리즘 메커니즘을 설계에 비추어 검증하며, 유저 스터디는 향후 과제입니다.
 
 ## 아키텍처
 
@@ -71,7 +71,7 @@ print(entry.visual_prompt.prompt)
 
 ## 실험
 
-네 개의 결정론적 스크립트가 각 메커니즘을 논문 서술에 비추어 검증합니다. 고정 기준 시계와 수작업 라벨 시나리오([`experiments/_scenario.py`](experiments/_scenario.py))로 매 실행이 비트 단위로 동일하며, 그림과 기계 판독 JSON을 [`results/`](results)에 씁니다. 라벨은 객관적입니다(`E ≥ 0.6` = 중요, `나이 > 6일` = 장기).
+네 개의 결정론적 스크립트가 기억 모델의 각 메커니즘을 검증합니다. 고정 기준 시계와 수작업 라벨 시나리오([`experiments/_scenario.py`](experiments/_scenario.py))로 매 실행이 비트 단위로 동일하며, 그림과 기계 판독 JSON을 [`results/`](results)에 씁니다. 라벨은 객관적입니다(`E ≥ 0.6` = 중요, `나이 > 6일` = 장기).
 
 ```bash
 python experiments/run_all.py
@@ -116,13 +116,13 @@ python -m pytest    # 37개 테스트, 네트워크 불필요
 
 감쇠 보정, Eq. 1 점수·통합, 검색 융합·강화, RAG 기반 응답, 저널 회상 중복 제거, analyzer 추출, 템플릿 결정성, 그리고 위 모든 수치를 고정하는 결과 회귀 검사를 커버합니다. 의미 임베더가 설치된 경우에만 실행되는 테스트가 하나 더 있습니다.
 
-## 논문 충실도
+## 구현 노트
 
-**논문에서.** Eq. 1 기억 강도 점수(§4.2); 에빙하우스 감쇠 `d(Δt)=e^(−λΔt)`(§4.2); 6일 / ~75% 단기 창(§3.2); Dual-Template 프레임워크(§3.3, §4.3); 온보딩 → 페르소나·시각 정체성(§3.1, §4.1); Event-Emotion Analyzer와 RAG Memory Selection Block(§3.2).
+**논문에 명시.** Eq. 1 기억 강도 점수(§4.2); 에빙하우스 감쇠 `d(Δt)=e^(−λΔt)`(§4.2); 6일 / ~75% 단기 창(§3.2); Dual-Template 프레임워크(§3.3, §4.3); 온보딩 → 페르소나·시각 정체성(§3.1, §4.1); Event-Emotion Analyzer와 RAG Memory Selection Block(§3.2).
 
-**조작적 정의(논문 미명시).** λ = ln 4⁄6 (6일 / 25% 기준에서 유도); 통합 `λ_eff = λ·(1 − γ·k)` (확장 — 단일 고정 감쇠는 한 달 내 모든 기억을 지움); 검색 융합 `α·similarity + (1−α)·salience`, α = 0.5; 회상 시 강화(간격 반복); GPT-4o / DALL·E 3 대체용 오프라인 어휘·템플릿·해싱 스텁.
+**이 코드에서 설정**(논문이 값을 열어둔 부분). λ = ln 4⁄6 (6일 / 25% 기준에서 유도); 통합 `λ_eff = λ·(1 − γ·k)` — 현저성 높은 기억이 단기 창 이후에도 유지되게 함; 검색 융합 `α·similarity + (1−α)·salience`, α = 0.5; 회상 시 강화(간격 반복); GPT-4o / DALL·E 3 대체용 오프라인 어휘·템플릿·해싱 스텁.
 
-**범위 밖.** 논문이 예정한 유저 스터디와 실제 이미지 생성; 평가 시나리오는 소규모 수작업 합성셋으로 공개 벤치마크가 아님; 오프라인 analyzer는 키워드 기반.
+**미포함.** 유저 스터디(향후 과제)와 실제 이미지 생성; 평가 시나리오는 소규모 수작업 셋으로 공개 벤치마크가 아님; 오프라인 analyzer는 키워드 기반.
 
 ## 인용
 

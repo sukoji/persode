@@ -145,10 +145,10 @@ def main() -> None:
             print(f"  emotional-intrusion@{top_k} = {res['emotional_intrusion']:.2f}  "
                   f"(neutral queries, n={res['neutral_query_count']})")
 
-    # ---- robustness: does the headline survive design choices? --------------
-    # The chart above is the *scoped* claim (long-term emotional recall under
-    # lexically-distant probes). These three checks exist so the scoping cannot
-    # be mistaken for cherry-picking; they are written to JSON and printed here.
+    # ---- robustness checks reported alongside the scoped headline -----------
+    # The chart above is the scoped result (long-term emotional recall under
+    # lexically-distant probes). The checks below — full query set, plain probes,
+    # and the alpha sweep — are written to JSON and printed for context.
     def _triple(strats: dict) -> dict:
         return {
             n: {k: round(v, 3) for k, v in r.items()
@@ -182,7 +182,7 @@ def main() -> None:
                     "(see full_set_vague): it reallocates capacity toward long-term "
                     "emotional recall at a small cost on lexically-easy queries.",
     }
-    print("\n--- robustness (why the scoping is not cherry-picking) ---")
+    print("\n--- robustness ---")
     print(f"full set (10 q, vague)   fused vs sim recall: "
           f"{full_set['fused (Persode)']['target_recall']} vs "
           f"{full_set['similarity-only']['target_recall']}")

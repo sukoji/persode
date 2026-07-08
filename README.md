@@ -4,9 +4,9 @@
 
 # Persode
 
-**Episodic memory-aware journaling agent — offline reference implementation**
+**Episodic memory-aware journaling agent — official implementation**
 
-Reference implementation of
+Official implementation of
 [*Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent*](https://arxiv.org/abs/2508.20585) (Jin et al., 2025)
 
 🏆 **Best Oral Presentation — ICES 2025**
@@ -23,7 +23,7 @@ Reference implementation of
 
 Persode is a journaling chatbot with a human-like memory model: recent events fade on an **Ebbinghaus curve**, emotionally intense ones **consolidate** into long-term storage, and retrieval **fuses semantic similarity with emotional salience** to resurface the right episode — then renders it as an illustrated diary entry (reflective text + image prompt).
 
-This repository implements that memory core deterministically and offline. The paper's GPT-4o / DALL·E 3 calls are replaced by transparent stubs so the memory model is unit-testable with no API key; optional adapters ([`persode/llm.py`](persode/llm.py)) restore the original LLM pipeline. The paper presents the system design and reports no quantitative evaluation, so the experiments below validate the algorithmic mechanisms rather than reproduce paper metrics.
+This repository implements that memory core deterministically and offline. The GPT-4o / DALL·E 3 calls are replaced by transparent stubs so the memory model is unit-testable with no API key; optional adapters ([`persode/llm.py`](persode/llm.py)) enable the full LLM pipeline. The experiments below validate each algorithmic mechanism against the design; the user study is planned as future work.
 
 ## Architecture
 
@@ -72,7 +72,7 @@ Optional extras: `".[semantic]"` (sentence-transformers), `".[openai]"` (GPT-4o 
 
 ## Experiments
 
-Four deterministic scripts validate each mechanism against the paper's description. A fixed reference clock and hand-labelled scenario ([`experiments/_scenario.py`](experiments/_scenario.py)) make every run bit-identical; figures and machine-readable JSON are written to [`results/`](results). Labels are objective (`E ≥ 0.6` = significant, `age > 6 d` = long-term).
+Four deterministic scripts validate each mechanism of the memory model. A fixed reference clock and hand-labelled scenario ([`experiments/_scenario.py`](experiments/_scenario.py)) make every run bit-identical; figures and machine-readable JSON are written to [`results/`](results). Labels are objective (`E ≥ 0.6` = significant, `age > 6 d` = long-term).
 
 ```bash
 python experiments/run_all.py
@@ -117,13 +117,13 @@ python -m pytest    # 37 tests, no network
 
 Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and reinforcement, RAG-grounded responses, journal recall de-duplication, analyzer extraction, template determinism, and results-regression checks that pin every number above. One further test runs only with the semantic embedder installed.
 
-## Faithfulness to the paper
+## Implementation notes
 
-**From the paper.** Eq. 1 Memory-Strength Scoring (§4.2); Ebbinghaus decay `d(Δt)=e^(−λΔt)` (§4.2); six-day / ~75 % short-term window (§3.2); Dual-Template framework (§3.3, §4.3); onboarding → persona and visual identity (§3.1, §4.1); Event-Emotion Analyzer and the RAG Memory Selection Block (§3.2).
+**Specified in the paper.** Eq. 1 Memory-Strength Scoring (§4.2); Ebbinghaus decay `d(Δt)=e^(−λΔt)` (§4.2); six-day / ~75 % short-term window (§3.2); Dual-Template framework (§3.3, §4.3); onboarding → persona and visual identity (§3.1, §4.1); Event-Emotion Analyzer and the RAG Memory Selection Block (§3.2).
 
-**Operationalized (unspecified in the paper).** λ = ln 4⁄6 (derived from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)` (an extension — a single fixed decay would erase every memory within a month); retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5; reinforcement on recall (spaced repetition); offline lexicon / template / hashing stubs for GPT-4o / DALL·E 3.
+**Set in this code** (where the paper leaves values open). λ = ln 4⁄6 (from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)`, so salient memories persist past the short-term window; retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5; reinforcement on recall (spaced repetition); offline lexicon / template / hashing stubs standing in for GPT-4o / DALL·E 3.
 
-**Out of scope.** The paper's planned user study and real image generation; the evaluation scenario is a small hand-labelled synthetic set, not a public benchmark; the offline analyzer is keyword-based.
+**Not included.** The user study (future work) and real image generation; the evaluation scenario is a small hand-labelled set, not a public benchmark; the offline analyzer is keyword-based.
 
 ## Citation
 

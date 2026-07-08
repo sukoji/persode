@@ -92,8 +92,8 @@ def test_exp3_robustness_is_not_cherry_picking():
     plain = eval_all(replace(cfg, paraphrase="default"))
     assert round(plain["similarity-only"]["target_recall"], 2) == 1.00
 
-    # alpha is a broad plateau, not a magic value: recall holds at 0.80 across the
-    # whole interior band (the ablation figure shows the same), only the extremes fall.
+    # alpha is a broad plateau: recall holds at 0.80 across the whole interior
+    # band (the ablation figure shows the same); only the extremes fall.
     for a in (0.45, 0.5, 0.75, 0.95):
         assert round(eval_all(replace(cfg, alpha=a))["fused (Persode)"]["target_recall"], 2) == 0.80
     for a in (0.0, 1.0):

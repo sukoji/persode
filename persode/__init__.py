@@ -1,11 +1,11 @@
 """Persode — Personalized visual journaling with an episodic memory-aware AI agent.
 
-Reference implementation of the core components described in:
+Official implementation of the core components described in:
 
     Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent
     Jin et al., arXiv:2508.20585 (2025)
 
-This package reproduces the paper's *algorithmic* core so it can be studied and
+This package implements the paper's *algorithmic* core so it can be studied and
 tested without any paid API keys:
 
 - ``memory``      — Ebbinghaus forgetting curve + Memory-Strength Scoring (Eq. 1)

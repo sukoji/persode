@@ -15,7 +15,7 @@ This module implements two ideas from the Persode paper (§3.2, §4.2):
 
    Deeper, emotionally salient memories (Craik & Lockhart's *Levels of
    Processing*) survive the decay and stay retrievable long after neutral ones
-   have faded — exactly the behaviour the paper wants from long-term memory.
+   have faded, forming the long-term store.
 """
 
 from __future__ import annotations
@@ -155,9 +155,9 @@ class MemoryStrengthScorer:
     memory: a steep short-term forgetting curve (~75% drop in six days) *and* a
     long-term store where "significant events" are retained by emotional
     intensity, recall frequency and contextual relevance. A single fixed
-    exponential would erase everything within a month, which is the opposite of
-    what the paper wants. Following Craik & Lockhart's *Levels of Processing*
-    ("deeper processing → longer-lasting retention"), we let salience **slow the
+    exponential would erase every memory within a month, leaving no long-term
+    store. Following Craik & Lockhart's *Levels of Processing*
+    ("deeper processing → longer-lasting retention"), salience **slows the
     decay**:
 
         λ_eff = λ · (1 - γ · k),   k = base_salience ∈ [0, 1]
