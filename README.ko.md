@@ -115,7 +115,9 @@ python experiments/run_all.py     # 아래 모든 그림 + JSON 재생성
 
 - **전체 질의(10개):** fused vs 순수 RAG recall이 **0.70 vs 0.70** — net 중립. 한정 이득은 어휘적으로 쉬운(최근·중립) 질의에서의 약손해로 상쇄됨.
 - **왜 모호한 probe인가:** *같은* 장기 질의 5개를 일반 표현으로 주면 similarity-only가 이미 recall **1.00** — 좁힐 격차가 없으므로 어휘 불일치가 유일한 판별 영역.
-- **α는 마법값이 아니라 평탄역:** 한정 recall이 **α ∈ [0.5, 0.75]에서 0.80으로 평탄**(α = 0.5가 MRR 최고); 순수 유사도(α = 1)·순수 현저성(α = 0)은 둘 다 0.40으로 하락.
+- **α는 마법값이 아니라 넓은 평탄역:** 한정 recall이 **α ∈ [0.45, 0.95]에서 0.80으로 평탄**(MRR은 α ≈ 0.5에서 최고); 양 끝점 — 순수 유사도(α = 1, 순수 RAG)·순수 현저성(α = 0) — 만 0.40으로 하락. 전체 스윕:
+
+<p align="center"><img src="results/exp3_alpha_ablation.png" width="72%" alt="Exp 3 — α 융합 ablation 스윕, recall 평탄역"></p>
 - **임베더 의존성(중요, 공개):** 위 수치는 결정론적 **해싱(어휘)** 임베더 기준입니다. 실제 의미 모델로 재실행하면 — `PERSODE_EMBEDDER=sentence-transformers python experiments/exp3_retrieval.py` — 순수 유사도가 이미 **모든** 대상을 회수(recall **1.00**)합니다. 모델이 *"사랑하던 존재를 잃은 뒤의 공허함"* ≈ *"lost my beloved dog"*의 의미 유사성을 이해하기 때문입니다. 따라서 **위의 recall 이득은 약한/어휘적 임베더가 놓치는 부분이지, 의미 RAG에 대한 보편적 승리가 아닙니다.** salience의 임베더-독립적 기여는 **우선순위화**(동등하게 관련된 기억들 중 감정적으로 중요한 것을 먼저 랭크 — 논문의 실제 주장)입니다. 그리고 이는 임베더-독립적으로 *입증*됩니다([`salience_prioritization`](results/exp3_retrieval.json) in JSON): 두 기억에 동일 텍스트를 주면 — 어떤 임베더든 유사도가 동률 — 융합은 감정적으로 중요한 쪽을 1위로(`[significant, neutral]`), 순수 유사도는 동률로 방치(`[neutral, significant]`, 임의). 해싱 임베더 recall 수치가 fusion을 과대포장하지 않도록 이 모두를 공개합니다.
 
 질의별 JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Exp. 4 전체 기록(두 프로필 × 두 비네트): [`results/exp4_journals.md`](results/exp4_journals.md).

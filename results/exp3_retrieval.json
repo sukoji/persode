@@ -330,6 +330,113 @@
     "embedder_note": "The recall table uses the hashing (lexical) embedder; a semantic embedder makes similarity-only suffice. salience_prioritization is embedder-independent (identical text => identical similarity).",
     "why_filter": "The paper's claim is scoped to emotionally-significant long-term memories, so metrics are reported on exactly those queries.",
     "why_vague": "With verbatim-like probes, similarity-only already recalls the long-term target (see scoped_plain_probes); the fusion gain only appears when the probe is lexically distant from the stored episode.",
-    "tradeoff": "Over the full query mix, fusion is net-neutral vs pure RAG (see full_set_vague): it reallocates capacity toward long-term emotional recall at a small cost on lexically-easy queries."
+    "tradeoff": "Over the full query mix, fusion is net-neutral vs pure RAG (see full_set_vague): it reallocates capacity toward long-term emotional recall at a small cost on lexically-easy queries.",
+    "alpha_curve": [
+      {
+        "alpha": 0.0,
+        "target_recall": 0.4,
+        "target_mrr": 0.4019047619047619
+      },
+      {
+        "alpha": 0.05,
+        "target_recall": 0.4,
+        "target_mrr": 0.4019047619047619
+      },
+      {
+        "alpha": 0.1,
+        "target_recall": 0.4,
+        "target_mrr": 0.5066666666666666
+      },
+      {
+        "alpha": 0.15,
+        "target_recall": 0.4,
+        "target_mrr": 0.5133333333333334
+      },
+      {
+        "alpha": 0.2,
+        "target_recall": 0.4,
+        "target_mrr": 0.5133333333333334
+      },
+      {
+        "alpha": 0.25,
+        "target_recall": 0.4,
+        "target_mrr": 0.5133333333333334
+      },
+      {
+        "alpha": 0.3,
+        "target_recall": 0.4,
+        "target_mrr": 0.5133333333333334
+      },
+      {
+        "alpha": 0.35,
+        "target_recall": 0.4,
+        "target_mrr": 0.5133333333333334
+      },
+      {
+        "alpha": 0.4,
+        "target_recall": 0.4,
+        "target_mrr": 0.5200000000000001
+      },
+      {
+        "alpha": 0.45,
+        "target_recall": 0.8,
+        "target_mrr": 0.5566666666666668
+      },
+      {
+        "alpha": 0.5,
+        "target_recall": 0.8,
+        "target_mrr": 0.5566666666666668
+      },
+      {
+        "alpha": 0.55,
+        "target_recall": 0.8,
+        "target_mrr": 0.5566666666666668
+      },
+      {
+        "alpha": 0.6,
+        "target_recall": 0.8,
+        "target_mrr": 0.5566666666666668
+      },
+      {
+        "alpha": 0.65,
+        "target_recall": 0.8,
+        "target_mrr": 0.4566666666666667
+      },
+      {
+        "alpha": 0.7,
+        "target_recall": 0.8,
+        "target_mrr": 0.49000000000000005
+      },
+      {
+        "alpha": 0.75,
+        "target_recall": 0.8,
+        "target_mrr": 0.44000000000000006
+      },
+      {
+        "alpha": 0.8,
+        "target_recall": 0.8,
+        "target_mrr": 0.44000000000000006
+      },
+      {
+        "alpha": 0.85,
+        "target_recall": 0.8,
+        "target_mrr": 0.44000000000000006
+      },
+      {
+        "alpha": 0.9,
+        "target_recall": 0.8,
+        "target_mrr": 0.44000000000000006
+      },
+      {
+        "alpha": 0.95,
+        "target_recall": 0.8,
+        "target_mrr": 0.44000000000000006
+      },
+      {
+        "alpha": 1.0,
+        "target_recall": 0.4,
+        "target_mrr": 0.4019047619047619
+      }
+    ]
   }
 }

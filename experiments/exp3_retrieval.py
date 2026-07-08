@@ -78,6 +78,50 @@ def _is_long_term_target(target: str) -> bool:
     return by[target].age_days(NOW) > SHORT_TERM_WINDOW_DAYS
 
 
+def plot_alpha_ablation(cfg: Exp3Config, out_png: Path) -> list[dict]:
+    """Fine α sweep behind the fusion-ablation figure (scoped config).
+
+    Shows retrieval quality as α moves from pure salience (α=0) to pure similarity
+    (α=1, plain RAG), making the interior plateau — where fusing both signals wins —
+    visible rather than asserted.
+    """
+    alphas = [round(i / 20, 2) for i in range(21)]  # 0.00 .. 1.00 step 0.05
+    recalls, mrrs = [], []
+    for a in alphas:
+        r = eval_all(replace(cfg, alpha=a))["fused (Persode)"]
+        recalls.append(r["target_recall"])
+        mrrs.append(r["target_mrr"])
+
+    style.apply()
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    peak = max(recalls)
+    plateau = [a for a, rr in zip(alphas, recalls) if rr >= peak - 1e-9]
+    if plateau:
+        ax.axvspan(min(plateau), max(plateau), color=style.GRID, alpha=0.5, lw=0, zorder=0,
+                   label=f"recall plateau (α ∈ [{min(plateau):g}, {max(plateau):g}])")
+    ax.plot(alphas, recalls, color=style.BLUE, lw=2.2, marker="o", ms=4, zorder=3,
+            label="target-recall@4")
+    ax.plot(alphas, mrrs, color=style.AQUA, lw=2.0, marker="s", ms=3.5, zorder=3,
+            label="target-MRR")
+    ax.scatter([0.0, 1.0], [recalls[0], recalls[-1]], s=46, color=style.VIOLET,
+               edgecolor=style.SURFACE, linewidth=1.4, zorder=4)
+    ax.annotate("pure salience (α=0)", (0.0, recalls[0]),
+                xytext=(0.03, recalls[0] + 0.13), color=style.MUTED, fontsize=9)
+    ax.annotate("pure similarity / RAG (α=1)", (1.0, recalls[-1]),
+                xytext=(0.55, recalls[-1] + 0.13), color=style.MUTED, fontsize=9)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1.1)
+    ax.set_xlabel("α  —  fusion weight on semantic similarity")
+    ax.set_ylabel("score (higher is better)")
+    ax.set_title("Exp. 3 — α fusion ablation (scoped: long-term emotional, vague probes)")
+    ax.legend(loc="lower center", ncol=3, fontsize=8.5)
+    style.style_axes(ax)
+    fig.tight_layout()
+    fig.savefig(out_png, bbox_inches="tight")
+    return [{"alpha": a, "target_recall": r, "target_mrr": m}
+            for a, r, m in zip(alphas, recalls, mrrs)]
+
+
 def main() -> None:
     cfg = load_config()
     strategies = eval_all(cfg)
@@ -195,6 +239,11 @@ def main() -> None:
     out_png = RESULTS / "exp3_retrieval.png"
     fig.savefig(out_png, bbox_inches="tight")
     print(f"\nsaved {out_png}")
+
+    ablation_png = RESULTS / "exp3_alpha_ablation.png"
+    alpha_curve = plot_alpha_ablation(cfg, ablation_png)
+    robustness["alpha_curve"] = alpha_curve
+    print(f"saved {ablation_png}")
 
     payload = {
         "reference_now": NOW.isoformat(),
