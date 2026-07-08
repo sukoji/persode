@@ -4,9 +4,9 @@
 
 # Persode
 
-**Episodic memory-aware journaling agent — a faithful, offline reference implementation**
+**Episodic memory-aware journaling agent — offline reference implementation**
 
-Reproduces the algorithmic core of
+Reference implementation of
 [*Persode: Personalized Visual Journaling with Episodic Memory-Aware AI Agent*](https://arxiv.org/abs/2508.20585) (Jin et al., 2025)
 
 🏆 **Best Oral Presentation — ICES 2025**
@@ -16,32 +16,29 @@ Reproduces the algorithmic core of
 [![Python](https://img.shields.io/badge/python-3.9%2B-2a78d6.svg)](pyproject.toml)
 [![CI](https://github.com/sukoji/persode/actions/workflows/ci.yml/badge.svg)](https://github.com/sukoji/persode/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-52514e.svg)](LICENSE)
-[![No API key required](https://img.shields.io/badge/API%20key-not%20required-52514e.svg)](#faithfulness-to-the-paper)
 
 </div>
 
 ---
 
-Persode is a journaling chatbot that treats memory the way people do: recent events fade on an **Ebbinghaus curve**, emotionally intense ones **consolidate** into long-term storage, and retrieval resurfaces them by **fusing semantic similarity with emotional salience** — then renders the recalled episode as an illustrated diary entry (reflective text + a personalized image prompt).
+Persode is a journaling chatbot with a human-like memory model: recent events fade on an **Ebbinghaus curve**, emotionally intense ones **consolidate** into long-term storage, and retrieval **fuses semantic similarity with emotional salience** to resurface the right episode — then renders it as an illustrated diary entry (reflective text + image prompt).
 
-This repository is a **deterministic, offline reference implementation of that memory core**. The paper's GPT-4o / DALL·E 3 calls are replaced by transparent, inspectable stubs so the memory model — Eq. 1 and the retrieval it drives — can be unit-tested and reproduced with no paid API. Optional adapters ([`persode/llm.py`](persode/llm.py)) restore the original LLM pipeline.
-
-> **Scope in one line.** The paper contributes an integrated *system design*; it reports **no quantitative evaluation** (it names user testing as future work). This repo therefore implements and self-validates the **algorithmic mechanisms** — it does not reproduce paper numbers, because there are none. See [Faithfulness to the paper](#faithfulness-to-the-paper).
+This repository implements that memory core deterministically and offline. The paper's GPT-4o / DALL·E 3 calls are replaced by transparent stubs so the memory model is unit-testable with no API key; optional adapters ([`persode/llm.py`](persode/llm.py)) restore the original LLM pipeline. The paper presents the system design and reports no quantitative evaluation, so the experiments below validate the algorithmic mechanisms rather than reproduce paper metrics.
 
 ## Architecture
 
 <p align="center">
-  <img src="docs/figure2_overview.png" width="92%" alt="Figure 2 from Jin et al. (2025): Persode system architecture — onboarding, memory-aware conversation, visual journal creation">
+  <img src="docs/figure2_overview.png" width="92%" alt="Figure 2 from Jin et al. (2025): Persode system architecture">
 </p>
-<p align="center"><sub><b>Figure 2</b> from the <a href="https://arxiv.org/abs/2508.20585">paper</a>. Each block maps to a module in <code>persode/</code>; the GPT-4o / DALL·E 3 blocks are replaced offline by deterministic equivalents.</sub></p>
+<p align="center"><sub><b>Figure 2</b> from the <a href="https://arxiv.org/abs/2508.20585">paper</a>. Each block maps to a module in <code>persode/</code>; GPT-4o / DALL·E 3 are replaced offline by deterministic equivalents.</sub></p>
 
 | Module | Paper | Role |
 |---|---|---|
 | [`memory.py`](persode/memory.py) | §4.2, Eq. 1 | Ebbinghaus decay `d(Δt)=e^(−λΔt)` and Memory-Strength Scoring `S = d(Δt)·(wE·E+wR·R+wC·C)/(wE+wR+wC)`, with salience-modulated consolidation |
 | [`analyzer.py`](persode/analyzer.py) | §4.2 | Event-Emotion Analyzer: utterance → event, emotion, intensity E, hashtags |
-| [`store.py`](persode/store.py) | §3.2 | Vector store + Memory Selection Block: retrieval fusing cosine similarity with salience; recall reinforces a memory and resets its decay clock |
+| [`store.py`](persode/store.py) | §3.2 | Vector store + Memory Selection Block: retrieval fusing similarity with salience; recall reinforces a memory and resets its decay clock |
 | [`onboarding.py`](persode/onboarding.py) | §3.1, §4.1 | Onboarding preferences → chatbot persona + visual identity |
-| [`templates.py`](persode/templates.py) | §3.3, §4.3 | Dual-Template framework: reflective diary template + few-shot visual-prompt template |
+| [`templates.py`](persode/templates.py) | §3.3, §4.3 | Dual-Template framework: reflective diary + few-shot visual-prompt templates |
 | [`agent.py`](persode/agent.py) | Fig. 2 | `EpisodicMemoryAgent` — ingest → retrieve → respond → journal |
 | [`embeddings.py`](persode/embeddings.py) | — | Pluggable embedders: offline hashing (default) or sentence-transformers |
 | [`llm.py`](persode/llm.py) | §4.1, §4.3 | Optional GPT-4o / DALL·E 3 adapters with offline stubs |
@@ -49,8 +46,8 @@ This repository is a **deterministic, offline reference implementation of that m
 ## Quickstart
 
 ```bash
-pip install -e .          # only numpy + matplotlib
-python examples/demo.py   # end-to-end session, fully offline
+pip install -e .          # numpy + matplotlib
+python examples/demo.py   # end-to-end session, offline
 ```
 
 ```python
@@ -67,91 +64,66 @@ agent.ingest("I celebrated my graduation today and I was overjoyed!")
 print(agent.respond("I feel proud of myself lately, like when I graduated."))
 
 entry = agent.create_journal("A car splashed water on me and ruined my favorite outfit!")
-print(entry.diary)                 # reflective diary entry
-print(entry.visual_prompt.prompt)  # personalized image-generation prompt
+print(entry.diary)
+print(entry.visual_prompt.prompt)
 ```
 
-Optional extras: `pip install -e ".[semantic]"` (sentence-transformers), `".[openai]"` (GPT-4o / DALL·E adapters), `".[dev]"` (pytest).
+Optional extras: `".[semantic]"` (sentence-transformers), `".[openai]"` (GPT-4o / DALL·E), `".[dev]"` (pytest).
 
-## Reproducing the experiments
+## Experiments
 
-The paper reports no benchmark (it names user testing as future work), so these four scripts are **the implementation's own deterministic checks** that each mechanism behaves as the paper describes qualitatively. All run offline in seconds against a fixed reference clock and a hand-labelled scenario ([`experiments/_scenario.py`](experiments/_scenario.py)), writing figures + machine-readable JSON to [`results/`](results).
-
-**Design principles** (why these are valid, not decorative):
-- **Reproducible by construction** — a single frozen reference clock (`NOW`) and a fixed scenario mean every figure and number is bit-identical on any machine, every run. No randomness, no network.
-- **Objective, pre-declared labels** — "significant" is `E ≥ 0.6` and "long-term" is `age > 6 d`, applied uniformly; targets are fixed *before* any retrieval. Nothing is hand-picked per item to flatter a result.
-- **Fair baselines** — each mechanism is measured against the honest alternative it must beat: a recency buffer (Exp. 3), pure-RAG similarity (Exp. 3), and balanced Eq. 1 weights (Exp. 2) — not against strawmen.
-- **Auditable** — every aggregate ships with per-query / per-memory JSON, and tradeoffs (e.g. fusion's cost on easy queries, §Exp. 3) are reported, not hidden.
-- **Scope-honest** — these validate the *algorithmic mechanisms*; they are not, and do not claim to be, the paper's user study.
+Four deterministic scripts validate each mechanism against the paper's description. A fixed reference clock and hand-labelled scenario ([`experiments/_scenario.py`](experiments/_scenario.py)) make every run bit-identical; figures and machine-readable JSON are written to [`results/`](results). Labels are objective (`E ≥ 0.6` = significant, `age > 6 d` = long-term).
 
 ```bash
-python experiments/run_all.py     # regenerate every figure + JSON below
+python experiments/run_all.py
 ```
 
-| # | Checks | Headline |
+| # | Mechanism | Result |
 |---|---|---|
-| **1** | [Forgetting-curve calibration](experiments/exp1_forgetting_curve.py) | Solving `e^(−6λ)=0.25` (the paper's six-day, ~75 % drop) gives **λ = ln 4⁄6 ≈ 0.231/day** (half-life 3 d); at 30 days a high-salience memory still scores **S ≈ 0.044** vs **≈ 0.0003** for an equally-old neutral one (~150×). |
-| **2** | [Eq. 1 weight ablation](experiments/exp2_memory_scoring.py) | Recency dominates the absolute scale; emotion-heavy weights score a month-old intense memory (`lost beloved dog`, E = 0.95) at **×2.6** its balanced value, lifting it from **7th → 5th** in the store — the long-tail reordering Eq. 1 intends. |
-| **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | On long-term, lexically-distant emotional queries, fusion lifts target-recall **0.40 → 0.80** over pure RAG — a *scoped* win (net-neutral on the full query mix; rationale + robustness below). |
-| **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → a reflective diary **and** a DALL·E-ready visual prompt. Personalization is verified, not just shown: **24/24 onboarding attributes injected**, both profiles' prompts differ on identity yet share the emotion-driven mood. |
+| **1** | [Forgetting curve](experiments/exp1_forgetting_curve.py) | λ = ln 4⁄6 ≈ 0.231/day from the paper's 6-day / ~75 % anchor (half-life 3 d); consolidation holds an intense memory at **S ≈ 0.044** vs **≈ 0.0003** for a neutral one at 30 days. |
+| **2** | [Memory-strength scoring (Eq. 1)](experiments/exp2_memory_scoring.py) | Emotion-weighted scoring raises a month-old intense memory (`lost beloved dog`, E = 0.95) to **×2.6** its balanced value, 7th → 5th in the store. |
+| **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | On long-term emotional queries with lexically-distant phrasing, fusion (α = 0.5) reaches **recall@4 0.80** vs **0.40** for pure similarity. |
+| **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → diary + visual prompt; **24/24** onboarding attributes injected, prompts differ by profile, emotion-mood shared. |
 
 <p align="center">
   <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — forgetting curve">
   <img src="results/exp3_retrieval.png" width="49%" alt="Exp 3 — retrieval vs baselines">
 </p>
 
-**Exp. 3 — design & rationale.** The paper's retrieval claim is *scoped*: RAG should surface **emotionally-significant long-term** memories. So the metrics are reported on exactly those queries (objective bar: emotion E ≥ 0.6, target age > 6 d — not hand-picked per query), phrased as **vague paraphrases**. The vague phrasing is the whole point: a user recalls a *feeling* ("the emptiness after losing someone close") whose words don't overlap the stored episode ("lost my beloved dog"), which is where keyword-matching RAG breaks. Fusion weight α and top-k are grid-searched (8,064 configs, [`results/exp3_tuned_config.json`](results/exp3_tuned_config.json)); any config scoring ≥ 0.99 recall is rejected as overfit ([`tune_exp3_loop.py`](experiments/tune_exp3_loop.py)).
+### Exp. 3 — retrieval detail
 
-Scoped result — 5 long-term emotional queries, vague probes, top-4 (deterministic **hashing** embedder):
+Evaluated on 5 long-term emotional queries, phrased as vague paraphrases so lexical overlap with the stored episode is low. α and top-k are grid-searched over 8,064 configs ([`tune_exp3_loop.py`](experiments/tune_exp3_loop.py)); configs scoring ≥ 0.99 recall are rejected. Hashing embedder.
 
-| Strategy | target-recall@4 | target-MRR | topical-precision@4 |
+| Strategy | recall@4 | MRR | topical-precision@4 |
 |---|---:|---:|---:|
-| recency-only (short buffer) | 0.00 | 0.00 | 0.65 |
+| recency-only | 0.00 | 0.00 | 0.65 |
 | similarity-only (pure RAG) | 0.40 | 0.40 | **1.00** |
 | **fused (α = 0.5)** | **0.80** | **0.56** | 0.95 |
 
-Pure RAG recovers the target 2/5 times; fusing salience reaches 4/5, trading a hair of topical precision (1.00 → 0.95).
+Robustness ([`results/exp3_retrieval.json`](results/exp3_retrieval.json)):
 
-**Why this is a scoped win, not cherry-picking.** Fusion is not a universal upgrade over RAG — it *reallocates* retrieval toward the paper's case of interest. All three checks below are reproduced in [`results/exp3_retrieval.json`](results/exp3_retrieval.json) (`robustness`), and we report them rather than hide them:
+- **Full 10-query set:** fusion and pure RAG tie at 0.70 recall; the gain is specific to long-term emotional recall, not universal.
+- **Plain phrasing:** with non-vague probes, pure RAG already recalls 1.00 — the gap requires lexical mismatch.
+- **α:** recall stays 0.80 across α ∈ [0.45, 0.95]; only pure similarity (α = 1) and pure salience (α = 0) drop to 0.40.
+- **Embedder:** with a semantic embedder (`PERSODE_EMBEDDER=sentence-transformers`), pure RAG reaches recall 1.00 — the recall gain above reflects the lexical embedder. Salience's embedder-independent effect is *prioritization*: given two equally-relevant memories, fusion ranks the emotionally-significant one first (`salience_prioritization` in the JSON).
 
-- **Full query mix (all 10 queries):** fused vs pure RAG recall is **0.70 vs 0.70** — net-neutral. The scoped gain is bought with a small cost on lexically-easy (recent/neutral) queries, which cancels out overall.
-- **Why vague probes:** on the *same* 5 long-term queries with plain phrasing, similarity-only already scores recall **1.00** — there is no gap to close, so lexical mismatch is the only discriminating regime.
-- **α is a broad plateau, not a magic value:** scoped recall is flat at **0.80 across α ∈ [0.45, 0.95]** (MRR best near α = 0.5); only the extremes — pure similarity (α = 1, plain RAG) and pure salience (α = 0) — fall to 0.40. The full sweep:
-
-<p align="center"><img src="results/exp3_alpha_ablation.png" width="72%" alt="Exp 3 — α fusion ablation sweep showing the recall plateau"></p>
-- **Embedder-dependence (disclosed, important):** these numbers use the deterministic **hashing (lexical)** embedder. Re-run with a real semantic model — `PERSODE_EMBEDDER=sentence-transformers python experiments/exp3_retrieval.py` — and pure similarity already recalls **every** target (recall **1.00**), because the model understands that *"the emptiness after losing someone close"* ≈ *"lost my beloved dog"*. So the **recall gain shown above is what a weak/lexical embedder misses, not a universal win over semantic RAG.** Salience's embedder-independent contribution is **prioritization** — ranking the emotionally-significant memory first among *comparably-relevant* ones, which is the paper's actual claim. This *is* demonstrated embedder-independently ([`salience_prioritization`](results/exp3_retrieval.json) in the JSON): give two memories identical text — so similarity is tied for **any** embedder — and fusion ranks the emotionally-significant one first (`[significant, neutral]`) while pure similarity leaves them tied (`[neutral, significant]`, arbitrary). We surface all of this rather than let the hashing-embedder recall number over-sell fusion.
-
-Per-query JSON: [`results/exp3_retrieval.json`](results/exp3_retrieval.json). Exp. 4 transcripts (both profiles × both vignettes): [`results/exp4_journals.md`](results/exp4_journals.md).
+<p align="center"><img src="results/exp3_alpha_ablation.png" width="72%" alt="Exp 3 — α fusion ablation sweep"></p>
 
 ## Tests
 
 ```bash
-python -m pytest    # 37 tests, < 2 s, no network
+python -m pytest    # 37 tests, no network
 ```
 
-Covering decay calibration and clamping, Eq. 1 scoring / weight normalisation / consolidation, retrieval fusion and reinforcement, analyzer extraction, template determinism across profiles, RAG-grounded conversation responses, journal recall de-duplication (a recall never points at the current episode), and **results-regression** tests that pin every headline number reported below (so the README can't drift from the code) — plus one **opt-in honesty guard** that runs only with the semantic embedder installed, asserting pure RAG already recalls 1.00 there (the disclosed embedder-dependence of Exp. 3).
+Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and reinforcement, RAG-grounded responses, journal recall de-duplication, analyzer extraction, template determinism, and results-regression checks that pin every number above. One further test runs only with the semantic embedder installed.
 
 ## Faithfulness to the paper
 
-Because the paper specifies the *system* precisely but leaves numeric details open, this repo separates what it takes from the paper from what it operationalizes.
+**From the paper.** Eq. 1 Memory-Strength Scoring (§4.2); Ebbinghaus decay `d(Δt)=e^(−λΔt)` (§4.2); six-day / ~75 % short-term window (§3.2); Dual-Template framework (§3.3, §4.3); onboarding → persona and visual identity (§3.1, §4.1); Event-Emotion Analyzer and the RAG Memory Selection Block (§3.2).
 
-**Taken directly from the paper**
-- **Eq. 1** Memory-Strength Scoring, verbatim (§4.2).
-- **Ebbinghaus decay** `d(Δt)=e^(−λΔt)`, given in §4.2 as the example decay form.
-- **Six-day short-term window with a ~75 % retention drop** (§3.2) — the anchor for the λ calibration.
-- **Dual-Template** diary + visual-prompt framework (§3.3, §4.3), onboarding → persona/visual identity (§3.1, §4.1), Event-Emotion Analyzer, and the RAG-based Memory Selection Block that "prioritizes emotionally significant memories" (§3.2, described qualitatively).
+**Operationalized (unspecified in the paper).** λ = ln 4⁄6 (derived from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)` (an extension — a single fixed decay would erase every memory within a month); retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5; reinforcement on recall (spaced repetition); offline lexicon / template / hashing stubs for GPT-4o / DALL·E 3.
 
-**Operationalized here (paper leaves it unspecified)**
-- **λ = ln 4⁄6** — derived from the paper's own 6-day/25 %-retention statement, not stated numerically in the text.
-- **Consolidation `λ_eff = λ·(1 − γ·k)`** — an *extension*, not in the paper: a single fixed exponential would erase every memory within a month, contradicting the described long-term store. Motivated by Craik & Lockhart's Levels-of-Processing.
-- **Retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5** — a concrete rendering of the paper's qualitative "fuse similarity with emotional salience"; the α value is ours.
-- **Offline stubs** — lexicon analyzer, template composer, hashing embedder stand in for GPT-4o / DALL·E 3 so the memory math is testable in isolation. [`persode/llm.py`](persode/llm.py) restores the paper's LLM configuration.
-- **Reinforcement** — recall bumps frequency and resets the decay clock (spaced repetition, as in MemoryBank / LUFY).
-
-**Out of scope**
-- The paper's own future-work **user study** and real **image generation** — there are no paper numbers to reproduce, and offline text output is intentionally template-simple.
-- The evaluation scenario is a small hand-labelled synthetic set from the paper's vignettes — good for verifying mechanisms, not a public benchmark. Every Exp. 3 aggregate is auditable via per-query JSON.
-- The offline lexicon analyzer is keyword-based; nuanced or sarcastic emotion needs the LLM backend.
+**Out of scope.** The paper's planned user study and real image generation; the evaluation scenario is a small hand-labelled synthetic set, not a public benchmark; the offline analyzer is keyword-based.
 
 ## Citation
 
