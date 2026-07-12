@@ -88,6 +88,16 @@ class Memory:
         now = now or datetime.now(timezone.utc)
         return max(0.0, (now - self.created_at).total_seconds() / SECONDS_PER_DAY)
 
+    def decay_age_days(self, now: Optional[datetime] = None) -> float:
+        """Elapsed days since the decay anchor: the last recall, else formation.
+
+        This is the ``Δt`` fed into ``d(Δt)`` — recalling a memory restarts its
+        forgetting curve without rewriting when the event actually happened.
+        """
+        now = now or datetime.now(timezone.utc)
+        anchor = self.last_recalled or self.created_at
+        return max(0.0, (now - anchor).total_seconds() / SECONDS_PER_DAY)
+
     def is_short_term(self, now: Optional[datetime] = None,
                       window_days: float = SHORT_TERM_WINDOW_DAYS) -> bool:
         """Whether the memory falls inside the recent short-term window."""
@@ -104,17 +114,17 @@ class Memory:
         return n / (n + saturation)
 
     def mark_recalled(self, now: Optional[datetime] = None) -> None:
-        """Reinforce this memory: bump recall frequency and reset its timestamp.
+        """Reinforce this memory: bump recall frequency and restart its decay clock.
 
-        Following MemoryBank / LUFY, retrieving a memory strengthens it. We also
-        refresh ``created_at`` so that a re-lived memory restarts its decay clock
-        (spaced repetition), which is how emotionally significant events stay
-        alive far beyond the six-day window.
+        Following MemoryBank / LUFY, retrieving a memory strengthens it: decay is
+        anchored at ``last_recalled`` (spaced repetition), which is how emotionally
+        significant events stay alive far beyond the six-day window. ``created_at``
+        is never mutated — the formation date (and thus ``is_short_term``, which is
+        about when the *event* happened) stays intact.
         """
         now = now or datetime.now(timezone.utc)
         self.recall_count += 1
         self.last_recalled = now
-        self.created_at = now
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
@@ -212,14 +222,18 @@ class MemoryStrengthScorer:
                         context_relevance: Optional[float] = None) -> float:
         """Consolidation-modulated retention factor ``d(Δt)`` for this memory."""
         lam_eff = self.effective_lambda(memory, context_relevance)
-        return ebbinghaus_decay(memory.age_days(now), lam_eff)
+        return ebbinghaus_decay(memory.decay_age_days(now), lam_eff)
 
     def score(self, memory: Memory, now: Optional[datetime] = None,
               context_relevance: Optional[float] = None) -> float:
-        """Full memory strength ``S`` including the (modulated) decay term."""
+        """Full memory strength ``S`` including the (modulated) decay term.
+
+        ``Δt`` is measured from the decay anchor (last recall, else formation) —
+        see :meth:`Memory.decay_age_days`.
+        """
         k = self.base_salience(memory, context_relevance)
         lam_eff = self.lam * (1.0 - self.protection * k)
-        decay = ebbinghaus_decay(memory.age_days(now), lam_eff)
+        decay = ebbinghaus_decay(memory.decay_age_days(now), lam_eff)
         return decay * k
 
     def rank(self, memories: Sequence[Memory], now: Optional[datetime] = None,

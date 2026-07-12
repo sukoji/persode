@@ -49,13 +49,18 @@ def test_emotional_memory_outlives_neutral():
     assert scorer.score(hot, now=now) > scorer.score(cold, now=now)
 
 
-def test_recall_reinforces_and_resets_clock():
+def test_recall_reinforces_and_resets_decay_clock():
     now = datetime(2025, 1, 10, tzinfo=timezone.utc)
-    m = Memory(text="x", created_at=now - timedelta(days=10))
+    formed = now - timedelta(days=10)
+    m = Memory(text="x", created_at=formed)
     assert m.age_days(now) == 10
+    assert m.decay_age_days(now) == 10
     m.mark_recalled(now)
     assert m.recall_count == 1
-    assert m.age_days(now) == 0  # decay clock reset
+    assert m.decay_age_days(now) == 0     # decay clock reset (spaced repetition)
+    assert m.created_at == formed         # formation date never rewritten
+    assert m.age_days(now) == 10
+    assert not m.is_short_term(now)       # recall does not re-make an old event recent
 
 
 def test_short_term_window():

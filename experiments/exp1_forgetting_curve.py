@@ -23,6 +23,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _style as style  # noqa: E402
+from _scenario import NOW  # noqa: E402
 from persode.memory import (  # noqa: E402
     DEFAULT_LAMBDA, SHORT_TERM_WINDOW_DAYS, Memory, MemoryStrengthScorer, ebbinghaus_decay,
 )
@@ -48,15 +49,14 @@ def main() -> None:
         "medium (E=0.5)":        dict(emotional_intensity=0.50, contextual_relevance=0.4, recall_count=1),
         "neutral (E=0.15)":      dict(emotional_intensity=0.15, contextual_relevance=0.25, recall_count=0),
     }
+    from datetime import timedelta
     curves = {}
     for label, kw in profiles.items():
         vals = []
         for d in days:
-            m = Memory(text="x", **kw)
-            # score at age d by faking creation d days before NOW
-            from datetime import timedelta
-            m.created_at = m.created_at - timedelta(days=float(d))
-            vals.append(scorer.score(m))
+            # Score at age d against the fixed reference clock (deterministic).
+            m = Memory(text="x", created_at=NOW - timedelta(days=float(d)), **kw)
+            vals.append(scorer.score(m, now=NOW))
         curves[label] = vals
 
     # ---- plot ----

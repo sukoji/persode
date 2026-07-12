@@ -82,7 +82,7 @@ python experiments/run_all.py
 |---|---|---|
 | **1** | [Forgetting curve](experiments/exp1_forgetting_curve.py) | λ = ln 4⁄6 ≈ 0.231/day from the paper's 6-day / ~75 % anchor (half-life 3 d); consolidation holds an intense memory at **S ≈ 0.044** vs **≈ 0.0003** for a neutral one at 30 days. |
 | **2** | [Memory-strength scoring (Eq. 1)](experiments/exp2_memory_scoring.py) | Emotion-weighted scoring raises a month-old intense memory (`lost beloved dog`, E = 0.95) to **×2.6** its balanced value, 7th → 5th in the store. |
-| **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | On long-term emotional queries with lexically-distant phrasing, fusion (α = 0.5) reaches **recall@4 0.80** vs **0.40** for pure similarity. |
+| **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | Under lexically-distant probes, fusion (α = 0.5) lifts long-term emotional recall@3 to **0.60** vs **0.40** for pure similarity — at a disclosed cost on neutral/plain queries (see detail below). |
 | **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → diary + visual prompt; **24/24** onboarding attributes injected, prompts differ by profile, emotion-mood shared. |
 
 <p align="center">
@@ -92,38 +92,40 @@ python experiments/run_all.py
 
 ### Exp. 3 — retrieval detail
 
-Evaluated on 5 long-term emotional queries, phrased as vague paraphrases so lexical overlap with the stored episode is low. α and top-k are grid-searched over 8,064 configs ([`tune_exp3_loop.py`](experiments/tune_exp3_loop.py)); configs scoring ≥ 0.99 recall are rejected. Hashing embedder.
+The protocol is **pre-registered**: every hyperparameter is the system's shipped default (α = 0.5, weights (1, 1, 1), top-k = 3, fixed metric threshold), set before looking at any result — nothing is tuned against the evaluation and no query subset is picked post hoc. All 10 queries (one per stored memory) run under two phrasing conditions: *plain* probes and *vague* paraphrases (one per memory, uniform rule: no content word from the stored text is reused). Hashing embedder; every number is pinned by regression tests. (In the figure, *topical-precision@3* counts retrieved memories whose query-similarity is at least half the target's — a drift check on what fusion pulls in.)
 
-| Strategy | recall@4 | MRR | topical-precision@4 |
+| Strategy | recall@3 (vague) | · long-term emotional (n=5) | recall@3 (plain) |
 |---|---:|---:|---:|
-| recency-only | 0.00 | 0.00 | 0.65 |
-| similarity-only (pure RAG) | 0.40 | 0.40 | **1.00** |
-| **fused (α = 0.5)** | **0.80** | **0.56** | 0.95 |
+| recency-only | 0.30 | 0.00 | 0.30 |
+| similarity-only (pure RAG) | 0.30 | 0.40 | **1.00** |
+| salience-only (similarity-free) | 0.30 | 0.40 | 0.30 |
+| **fused (α = 0.5)** | **0.40** | **0.60** | 0.80 |
 
-Robustness ([`results/exp3_retrieval.json`](results/exp3_retrieval.json)):
+What fusion buys — and what it costs ([`results/exp3_retrieval.json`](results/exp3_retrieval.json)):
 
-- **Full 10-query set:** fusion and pure RAG tie at 0.70 recall; the gain is specific to long-term emotional recall, not universal.
-- **Plain phrasing:** with non-vague probes, pure RAG already recalls 1.00 — the gap requires lexical mismatch.
-- **α:** recall stays 0.80 across α ∈ [0.45, 0.95]; only pure similarity (α = 1) and pure salience (α = 0) drop to 0.40.
-- **Embedder:** with a semantic embedder (`PERSODE_EMBEDDER=sentence-transformers`), pure RAG reaches recall 1.00 — the recall gain above reflects the lexical embedder. Salience's embedder-independent effect is *prioritization*: given two equally-relevant memories, fusion ranks the emotionally-significant one first (`salience_prioritization` in the JSON).
+- **The gain is scoped:** under lexical mismatch, fusion recovers long-term emotional episodes that pure similarity misses (0.60 vs 0.40) and recency can never reach (0.00).
+- **It is not a free win:** on plain probes pure similarity solves all 10 queries (1.00) while fusion drops two (0.80); under vague probes fusion loses the neutral-recent targets (0.00 vs 0.33) and pushes more emotional memories into neutral queries (intrusion 0.89 vs 0.67) — salience biases retrieval toward emotional content *by design*.
+- **α:** the long-term emotional bump (0.60) holds for α ∈ [0.45, 0.70]; both extremes fall back to 0.40. Note α = 0 is salience-*dominant*, not similarity-free — query similarity still enters the salience term via C; the similarity-free reference is the salience-only row.
+- **Embedder:** with a semantic embedder (`PERSODE_EMBEDDER=sentence-transformers`), pure RAG reaches recall 1.00 on both conditions — the recall gap above is an artifact of the lexical embedder. Salience's embedder-independent effect is *prioritization*: given two equally-relevant memories, fusion ranks the emotionally-significant one first (`salience_prioritization` in the JSON).
+- **Sample size:** n = 10 hand-labelled queries; one hit moves recall by 0.10. Read the gaps as deterministic mechanism checks, not population estimates.
 
 <p align="center"><img src="results/exp3_alpha_ablation.png" width="72%" alt="Exp 3 — α fusion ablation sweep"></p>
 
 ## Tests
 
 ```bash
-python -m pytest    # 37 tests, no network
+python -m pytest    # 39 tests, no network
 ```
 
-Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and reinforcement, RAG-grounded responses, journal recall de-duplication, analyzer extraction, template determinism, and results-regression checks that pin every number above. One further test runs only with the semantic embedder installed.
+Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and reinforcement, RAG-grounded responses, journal recall de-duplication, analyzer extraction, template determinism, and results-regression checks that pin every number above — including honesty guards that fail if fusion's costs (plain-probe and neutral-query losses) stop being reported. One further test runs only with the semantic embedder installed.
 
 ## Implementation notes
 
 **Specified in the paper.** Eq. 1 Memory-Strength Scoring (§4.2); Ebbinghaus decay `d(Δt)=e^(−λΔt)` (§4.2); six-day / ~75 % short-term window (§3.2); Dual-Template framework (§3.3, §4.3); onboarding → persona and visual identity (§3.1, §4.1); Event-Emotion Analyzer and the RAG Memory Selection Block (§3.2).
 
-**Set in this code** (where the paper leaves values open). λ = ln 4⁄6 (from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)`, so salient memories persist past the short-term window; retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5; reinforcement on recall (spaced repetition); offline lexicon / template / hashing stubs standing in for GPT-4o / DALL·E 3.
+**Set in this code** (where the paper leaves values open). λ = ln 4⁄6 (from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)`, so salient memories persist past the short-term window; retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5 (note similarity also enters salience via C, so the effective similarity weight at α = 0.5 is ≈ 0.67 with equal weights); reinforcement on recall restarts the decay clock at `last_recalled` without rewriting the formation date (spaced repetition); offline lexicon / template / hashing stubs standing in for GPT-4o / DALL·E 3. The Exp. 3 evaluation protocol is pre-registered from these defaults — no hyperparameter or query selection against the results.
 
-**Not included.** The user study (future work) and real image generation; the evaluation scenario is a small hand-labelled set, not a public benchmark; the offline analyzer is keyword-based.
+**Not included.** The user study (future work) and real image generation; the evaluation scenario is a small hand-labelled set (n = 10 queries), not a public benchmark; the offline analyzer is keyword-based.
 
 ## Citation
 

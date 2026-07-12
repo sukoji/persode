@@ -6,7 +6,6 @@ drifts, these fail — forcing the documented claims to be updated in lock-step,
 the README can never silently over- or under-state a result.
 """
 
-import json
 import math
 import sys
 from dataclasses import replace
@@ -19,13 +18,8 @@ sys.path.insert(0, str(ROOT / "experiments"))
 from persode.memory import (  # noqa: E402
     DEFAULT_LAMBDA, Memory, MemoryStrengthScorer, ebbinghaus_decay,
 )
-from _scenario import NOW, build_memories  # noqa: E402
+from _scenario import NOW, QUERY_PARAPHRASES_VAGUE, build_memories  # noqa: E402
 from _exp3_eval import Exp3Config, eval_all  # noqa: E402
-
-
-def _exp3_cfg() -> Exp3Config:
-    d = json.loads((ROOT / "results" / "exp3_tuned_config.json").read_text())["tuned"]
-    return Exp3Config(**d)
 
 
 # ---- Exp. 1 — forgetting-curve calibration --------------------------------
@@ -39,9 +33,9 @@ def test_exp1_consolidation_at_30_days():
     scorer = MemoryStrengthScorer()
 
     def s_at_30(E, C, R):
-        m = Memory(text="x", emotional_intensity=E, contextual_relevance=C, recall_count=R)
-        m.created_at = m.created_at - timedelta(days=30)
-        return scorer.score(m)
+        m = Memory(text="x", emotional_intensity=E, contextual_relevance=C, recall_count=R,
+                   created_at=NOW - timedelta(days=30))
+        return scorer.score(m, now=NOW)
 
     high = s_at_30(0.95, 0.7, 3)
     neutral = s_at_30(0.15, 0.25, 0)
@@ -69,35 +63,57 @@ def test_exp2_emotion_heavy_reordering():
     assert rank(emotion_heavy).index("lost beloved dog") + 1 == 5  # -> 5th
 
 
-# ---- Exp. 3 — salience-aware retrieval ------------------------------------
-def test_exp3_scoped_headline():
-    s = eval_all(_exp3_cfg())
-    assert round(s["recency-only"]["target_recall"], 2) == 0.00
-    assert round(s["similarity-only"]["target_recall"], 2) == 0.40
-    assert round(s["fused (Persode)"]["target_recall"], 2) == 0.80
-    assert round(s["fused (Persode)"]["target_mrr"], 2) == 0.56
-    assert round(s["similarity-only"]["topical_precision"], 2) == 1.00
-    assert round(s["fused (Persode)"]["topical_precision"], 2) == 0.95
+# ---- Exp. 3 — salience-aware retrieval (pre-registered protocol) -----------
+def test_exp3_protocol_is_fixed_defaults():
+    # The protocol must stay pre-registered: shipped defaults, no tuning knobs.
+    cfg = Exp3Config()
+    assert (cfg.alpha, cfg.top_k, cfg.topical_sim_fraction) == (0.5, 3, 0.5)
+    assert (cfg.w_emotion, cfg.w_recall, cfg.w_context, cfg.protection) == (1, 1, 1, 0.9)
+    assert not hasattr(cfg, "query_filter")  # post-hoc query selection stays deleted
 
 
-def test_exp3_robustness_is_not_cherry_picking():
-    cfg = _exp3_cfg()
+def test_exp3_vague_paraphrases_cover_every_memory():
+    # The vague condition must probe ALL memories, not just the ones where the
+    # method shines — asymmetric probe construction was a past defect.
+    events = {m.event for m in build_memories()}
+    assert set(QUERY_PARAPHRASES_VAGUE) == events
 
-    # Full query mix: fusion is net-neutral vs pure RAG (0.70 == 0.70).
-    full = eval_all(replace(cfg, query_filter=None))
-    assert round(full["fused (Persode)"]["target_recall"], 2) == 0.70
-    assert round(full["similarity-only"]["target_recall"], 2) == 0.70
 
-    # Plain (non-vague) probes: pure RAG already solves it -> why vague matters.
-    plain = eval_all(replace(cfg, paraphrase="default"))
+def test_exp3_vague_condition_headline():
+    s = eval_all(Exp3Config())  # paraphrase="vague"
+    assert round(s["recency-only"]["target_recall"], 2) == 0.30
+    assert round(s["similarity-only"]["target_recall"], 2) == 0.30
+    assert round(s["salience-only"]["target_recall"], 2) == 0.30
+    assert round(s["fused (Persode)"]["target_recall"], 2) == 0.40
+    # The mechanism-specific gain: long-term emotional recall under lexical mismatch.
+    assert round(s["similarity-only"]["recall_by_category"]["emotional_long"], 2) == 0.40
+    assert round(s["fused (Persode)"]["recall_by_category"]["emotional_long"], 2) == 0.60
+    assert round(s["recency-only"]["recall_by_category"]["emotional_long"], 2) == 0.00
+
+
+def test_exp3_plain_condition_and_tradeoffs():
+    # Honesty guards: fusion is NOT a free win and the README must say so.
+    plain = eval_all(Exp3Config(paraphrase="default"))
+    # With plainly-worded probes, pure similarity solves everything; fusion costs recall.
     assert round(plain["similarity-only"]["target_recall"], 2) == 1.00
+    assert round(plain["fused (Persode)"]["target_recall"], 2) == 0.80
+    # Under vague probes, fusion sacrifices neutral-recent recall...
+    vague = eval_all(Exp3Config())
+    assert vague["fused (Persode)"]["recall_by_category"]["neutral_recent"] \
+        <= vague["similarity-only"]["recall_by_category"]["neutral_recent"]
+    # ...and pushes more emotional memories into neutral queries (intrusion).
+    assert vague["fused (Persode)"]["emotional_intrusion"] \
+        >= vague["similarity-only"]["emotional_intrusion"]
 
-    # alpha is a broad plateau: recall holds at 0.80 across the whole interior
-    # band (the ablation figure shows the same); only the extremes fall.
-    for a in (0.45, 0.5, 0.75, 0.95):
-        assert round(eval_all(replace(cfg, alpha=a))["fused (Persode)"]["target_recall"], 2) == 0.80
+
+def test_exp3_alpha_sweep_shape():
+    # α ≈ 0.5 gives the long-term-emotional bump (0.60); both extremes fall back.
+    for a in (0.45, 0.5, 0.6, 0.7):
+        r = eval_all(replace(Exp3Config(), alpha=a))["fused (Persode)"]
+        assert round(r["recall_by_category"]["emotional_long"], 2) == 0.60
     for a in (0.0, 1.0):
-        assert round(eval_all(replace(cfg, alpha=a))["fused (Persode)"]["target_recall"], 2) == 0.40
+        r = eval_all(replace(Exp3Config(), alpha=a))["fused (Persode)"]
+        assert round(r["recall_by_category"]["emotional_long"], 2) == 0.40
 
 
 def test_exp3_semantic_embedder_closes_the_recall_gap():
@@ -115,7 +131,7 @@ def test_exp3_semantic_embedder_closes_the_recall_gap():
     E._embedder = lambda: st
     E._text_vec.cache_clear()
     try:
-        s = E.eval_all(_exp3_cfg())
+        s = E.eval_all(Exp3Config())
     finally:
         E._embedder = orig
         E._text_vec.cache_clear()
@@ -144,13 +160,3 @@ def test_exp4_personalization_is_verified():
     assert p["all_attributes_injected"] is True
     assert p["all_prompts_differ"] is True
     assert p["all_share_mood"] is True
-
-
-def test_exp3_tuning_grid_and_overfit_guard():
-    # Locks the README's concrete tuning claims: an 8,064-config search, with any
-    # config scoring >= 0.99 recall rejected as overfit.
-    import tune_exp3_loop as t
-    assert len(t._grid()) == 8064
-    assert t._MAX_HEADLINE == 0.99
-    assert t._credible({"target_recall": 0.99, "long_term_recall": 0.5}) is False
-    assert t._credible({"target_recall": 0.80, "long_term_recall": 0.80}) is True

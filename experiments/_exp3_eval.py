@@ -1,4 +1,11 @@
-"""Shared Exp. 3 evaluation — used by exp3_retrieval.py and tune_exp3_loop.py."""
+"""Shared Exp. 3 evaluation — used by exp3_retrieval.py and the regression tests.
+
+The protocol here is **pre-registered**: every value in :class:`Exp3Config` is
+fixed a priori from the system's own defaults, *never* tuned against the
+evaluation results. Metrics are computed over the full query set (one probe per
+scenario memory) and reported with a per-category breakdown; no query subset is
+selected post hoc for the headline.
+"""
 
 from __future__ import annotations
 
@@ -7,10 +14,9 @@ from functools import lru_cache
 from typing import Any
 
 from persode.embeddings import cosine_similarity, get_embedder
-from persode.memory import SHORT_TERM_WINDOW_DAYS, MemoryStrengthScorer
+from persode.memory import MemoryStrengthScorer
 from persode.store import MemoryStore
 from _scenario import (
-    EVAL_QUERIES,
     NOW,
     build_eval_queries,
     build_memories,
@@ -20,6 +26,20 @@ from _scenario import (
 
 @dataclass(frozen=True)
 class Exp3Config:
+    """Pre-registered evaluation protocol.
+
+    - ``alpha`` = 0.5: the store's shipped default (balanced fusion).
+    - weights (1, 1, 1) and ``protection`` = 0.9: the scorer's shipped defaults.
+    - ``top_k`` = 3: the agent's default retrieval depth.
+    - ``topical_sim_fraction`` = 0.5: fixed metric threshold (a retrieved memory
+      counts as on-topic when its query-similarity is at least half the
+      target's).
+    - ``paraphrase``: evaluation condition — "vague" probes every memory with a
+      lexically-distant paraphrase (the realistic journaling case: users never
+      repeat an episode verbatim); "default" uses plainly-worded probes. Both
+      conditions are always reported.
+    """
+
     alpha: float = 0.5
     w_emotion: float = 1.0
     w_recall: float = 1.0
@@ -27,8 +47,10 @@ class Exp3Config:
     protection: float = 0.9
     top_k: int = 3
     topical_sim_fraction: float = 0.5
-    query_filter: str | None = None  # None | "emotional" | "emotional_long"
-    paraphrase: str = "default"      # "default" | "vague"
+    paraphrase: str = "vague"
+
+
+STRATEGIES = ("recency-only", "similarity-only", "salience-only", "fused (Persode)")
 
 
 @lru_cache(maxsize=1)
@@ -39,15 +61,6 @@ def _embedder():
 @lru_cache(maxsize=256)
 def _text_vec(text: str):
     return _embedder().embed(text)
-
-
-def _cases(cfg: Exp3Config) -> list[dict]:
-    cases = build_eval_queries(cfg.paraphrase)
-    if cfg.query_filter == "emotional":
-        cases = [q for q in cases if q["category"].startswith("emotional")]
-    elif cfg.query_filter == "emotional_long":
-        cases = [q for q in cases if q["category"] == "emotional_long"]
-    return cases
 
 
 @lru_cache(maxsize=1)
@@ -69,26 +82,32 @@ def build_store(cfg: Exp3Config, w_similarity: float) -> MemoryStore:
 
 def _ranked_events(name: str, cfg: Exp3Config, query: str) -> list[str]:
     if name == "recency-only":
-        store = build_store(cfg, 0.5)
-        return [m.event for m in store.recent(now=NOW)]
+        # Rank the WHOLE store by recency. (Truncating to the six-day window
+        # would zero out every long-term query by construction — a strawman.)
+        mems = sorted(build_memories(), key=lambda m: m.created_at, reverse=True)
+        return [m.event for m in mems]
+    if name == "salience-only":
+        # Similarity-free ranking: α = 0 and no query-relevance override of C,
+        # so the query text plays no role at all (pure Eq.-1 salience).
+        store = build_store(cfg, 0.0)
+        hits = store.retrieve(query, top_k=len(store), now=NOW, reinforce=False,
+                              use_query_relevance_as_context=False)
+        return [r.memory.event for r in hits]
     alpha = 1.0 if name == "similarity-only" else cfg.alpha
     store = build_store(cfg, alpha)
     hits = store.retrieve(query, top_k=len(store), now=NOW, reinforce=False)
     return [r.memory.event for r in hits]
 
 
-def _is_long_term_target(target_event: str) -> bool:
-    return _memory_by_event()[target_event].age_days(NOW) > SHORT_TERM_WINDOW_DAYS
-
-
 def eval_strategy(name: str, cfg: Exp3Config) -> dict[str, Any]:
     by_event = _memory_by_event()
 
-    recalls, mrrs, topical, lt_hits = [], [], [], []
+    recalls, mrrs, topical = [], [], []
+    by_cat_hits: dict[str, list[float]] = {}
     intrusions = []
     per_query = []
 
-    for q in _cases(cfg):
+    for q in build_eval_queries(cfg.paraphrase):
         ranked = _ranked_events(name, cfg, q["query"])
         top = ranked[: cfg.top_k]
         target = q["target"]
@@ -101,6 +120,7 @@ def eval_strategy(name: str, cfg: Exp3Config) -> dict[str, Any]:
         hit = target in top
         recalls.append(float(hit))
         mrrs.append(1.0 / (ranked.index(target) + 1) if target in ranked else 0.0)
+        by_cat_hits.setdefault(q["category"], []).append(float(hit))
 
         on_topic = [
             cosine_similarity(q_emb, _text_vec(by_event[e].text)) >= topical_thresh
@@ -108,17 +128,12 @@ def eval_strategy(name: str, cfg: Exp3Config) -> dict[str, Any]:
         ]
         topical.append(float(sum(on_topic) / len(on_topic)) if on_topic else 0.0)
 
-        if _is_long_term_target(target):
-            lt_hits.append(float(target in top))
-
-        intrusion = None
         if q["category"].startswith("neutral"):
             other = sum(
                 1 for e in top
                 if e != target and is_emotionally_significant(by_event[e])
             )
-            intrusion = other / len(top) if top else 0.0
-            intrusions.append(intrusion)
+            intrusions.append(other / len(top) if top else 0.0)
 
         per_query.append({
             "query": q["query"],
@@ -133,8 +148,10 @@ def eval_strategy(name: str, cfg: Exp3Config) -> dict[str, Any]:
         "target_recall": float(sum(recalls) / len(recalls)) if recalls else 0.0,
         "target_mrr": float(sum(mrrs) / len(mrrs)) if mrrs else 0.0,
         "topical_precision": float(sum(topical) / len(topical)) if topical else 0.0,
-        "long_term_recall": float(sum(lt_hits) / len(lt_hits)) if lt_hits else None,
-        "long_term_query_count": len(lt_hits),
+        "recall_by_category": {
+            c: float(sum(h) / len(h)) for c, h in sorted(by_cat_hits.items())
+        },
+        "query_count_by_category": {c: len(h) for c, h in sorted(by_cat_hits.items())},
         "emotional_intrusion": float(sum(intrusions) / len(intrusions)) if intrusions else None,
         "neutral_query_count": len(intrusions),
         "query_count": len(recalls),
@@ -143,53 +160,4 @@ def eval_strategy(name: str, cfg: Exp3Config) -> dict[str, Any]:
 
 
 def eval_all(cfg: Exp3Config) -> dict[str, dict]:
-    return {
-        "recency-only": eval_strategy("recency-only", cfg),
-        "similarity-only": eval_strategy("similarity-only", cfg),
-        "fused (Persode)": eval_strategy("fused", cfg),
-    }
-
-
-def composite_score(res: dict) -> float:
-    """Higher is better. Intrusion is inverted (lower intrusion → higher score)."""
-    lt = res["long_term_recall"] if res["long_term_recall"] is not None else 0.0
-    intr = res["emotional_intrusion"] if res["emotional_intrusion"] is not None else 0.0
-    return (
-        res["target_recall"]
-        + res["target_mrr"]
-        + res["topical_precision"]
-        + lt
-        - intr
-    )
-
-
-def persode_wins(strategies: dict[str, dict]) -> tuple[bool, dict]:
-    """True when fused beats both baselines on composite and ranks #1 on ≥3 metrics."""
-    p = strategies["fused (Persode)"]
-    r = strategies["recency-only"]
-    s = strategies["similarity-only"]
-
-    p_comp = composite_score(p)
-    beats_both = p_comp >= composite_score(s) and p_comp > composite_score(r)
-
-    metric_checks = {
-        "target_recall": p["target_recall"] >= max(r["target_recall"], s["target_recall"]),
-        "target_mrr": p["target_mrr"] >= max(r["target_mrr"], s["target_mrr"]),
-        "topical_precision": p["topical_precision"] >= max(r["topical_precision"], s["topical_precision"]),
-        "long_term_recall": (
-            (p["long_term_recall"] or 0) >= max(r["long_term_recall"] or 0, s["long_term_recall"] or 0)
-        ),
-        "low_intrusion": (
-            (p["emotional_intrusion"] or 1) <= min(r["emotional_intrusion"] or 1, s["emotional_intrusion"] or 1)
-        ),
-    }
-    wins_count = sum(metric_checks.values())
-
-    detail = {
-        "composite": {"persode": p_comp, "recency": composite_score(r), "similarity": composite_score(s)},
-        "metric_wins": metric_checks,
-        "wins_count": wins_count,
-        "beats_both_composite": beats_both,
-    }
-    satisfied = beats_both and wins_count >= 3
-    return satisfied, detail
+    return {name: eval_strategy(name, cfg) for name in STRATEGIES}

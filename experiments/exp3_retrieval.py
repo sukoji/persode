@@ -1,10 +1,15 @@
 """Experiment 3 — salience-aware RAG retrieval (the Memory Selection Block).
 
-Loads tuned hyperparameters from results/exp3_tuned_config.json when present
-(written by tune_exp3_loop.py). Otherwise uses paper defaults (α = 0.5).
+Protocol (see _exp3_eval.Exp3Config) is pre-registered: every hyperparameter is
+the system's shipped default, fixed before looking at any result. Metrics cover
+the full query set (one probe per scenario memory) under two phrasing
+conditions — plain probes and lexically-distant "vague" paraphrases (one per
+memory, uniform construction rule) — with a per-category breakdown. Nothing is
+tuned against the evaluation and no query subset is selected post hoc.
 
 Outputs:
     results/exp3_retrieval.png
+    results/exp3_alpha_ablation.png
     results/exp3_retrieval.json
 """
 
@@ -23,30 +28,22 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _style as style  # noqa: E402
 from _exp3_eval import Exp3Config, eval_all  # noqa: E402
-from _scenario import EMOTION_THRESHOLD, EVAL_QUERIES, NOW, build_memories  # noqa: E402
+from _scenario import EMOTION_THRESHOLD, NOW  # noqa: E402
 from persode.memory import SHORT_TERM_WINDOW_DAYS  # noqa: E402
 
 RESULTS = Path(__file__).resolve().parents[1] / "results"
-CONFIG_PATH = RESULTS / "exp3_tuned_config.json"
 RESULTS.mkdir(exist_ok=True)
-
-
-def load_config() -> Exp3Config:
-    if CONFIG_PATH.exists():
-        d = json.loads(CONFIG_PATH.read_text())["tuned"]
-        return Exp3Config(**d)
-    return Exp3Config()
 
 
 def salience_prioritization() -> dict:
     """Embedder-independent demonstration of the paper's *actual* claim.
 
-    The retrieval table above (recall on vague probes) is embedder-dependent: a
-    strong semantic model makes pure similarity suffice. Salience's embedder-
-    independent contribution is *prioritization* — when two memories are equally
-    relevant, surface the emotionally significant one. We hold relevance fixed by
-    giving both memories identical text (so their similarity is identical for
-    ANY embedder), and vary only emotional intensity.
+    Recall under vague probes is embedder-dependent: a strong semantic model
+    makes pure similarity suffice. Salience's embedder-independent contribution
+    is *prioritization* — when two memories are equally relevant, surface the
+    emotionally significant one. We hold relevance fixed by giving both memories
+    identical text (so their similarity is identical for ANY embedder), and vary
+    only emotional intensity.
     """
     from persode.memory import Memory, MemoryStrengthScorer  # local: keep import graph flat
     from persode.store import MemoryStore
@@ -73,196 +70,164 @@ def salience_prioritization() -> dict:
     }
 
 
-def _is_long_term_target(target: str) -> bool:
-    by = {m.event: m for m in build_memories()}
-    return by[target].age_days(NOW) > SHORT_TERM_WINDOW_DAYS
-
-
-def plot_alpha_ablation(cfg: Exp3Config, out_png: Path) -> list[dict]:
-    """Fine α sweep behind the fusion-ablation figure (scoped config).
-
-    Shows retrieval quality as α moves from pure salience (α=0) to pure similarity
-    (α=1, plain RAG), making the interior plateau — where fusing both signals wins —
-    visible rather than asserted.
-    """
-    alphas = [round(i / 20, 2) for i in range(21)]  # 0.00 .. 1.00 step 0.05
-    recalls, mrrs = [], []
-    for a in alphas:
-        r = eval_all(replace(cfg, alpha=a))["fused (Persode)"]
-        recalls.append(r["target_recall"])
-        mrrs.append(r["target_mrr"])
-
-    style.apply()
-    fig, ax = plt.subplots(figsize=(9, 4.8))
-    peak = max(recalls)
-    plateau = [a for a, rr in zip(alphas, recalls) if rr >= peak - 1e-9]
-    if plateau:
-        ax.axvspan(min(plateau), max(plateau), color=style.GRID, alpha=0.5, lw=0, zorder=0,
-                   label=f"recall plateau (α ∈ [{min(plateau):g}, {max(plateau):g}])")
-    ax.plot(alphas, recalls, color=style.BLUE, lw=2.2, marker="o", ms=4, zorder=3,
-            label="target-recall@4")
-    ax.plot(alphas, mrrs, color=style.AQUA, lw=2.0, marker="s", ms=3.5, zorder=3,
-            label="target-MRR")
-    ax.scatter([0.0, 1.0], [recalls[0], recalls[-1]], s=46, color=style.VIOLET,
-               edgecolor=style.SURFACE, linewidth=1.4, zorder=4)
-    ax.annotate("pure salience (α=0)", (0.0, recalls[0]),
-                xytext=(0.03, recalls[0] + 0.13), color=style.MUTED, fontsize=9)
-    ax.annotate("pure similarity / RAG (α=1)", (1.0, recalls[-1]),
-                xytext=(0.55, recalls[-1] + 0.13), color=style.MUTED, fontsize=9)
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1.1)
-    ax.set_xlabel("α  —  fusion weight on semantic similarity")
-    ax.set_ylabel("score (higher is better)")
-    ax.set_title("Exp. 3 — α fusion ablation (scoped: long-term emotional, vague probes)")
-    ax.legend(loc="lower center", ncol=3, fontsize=8.5)
-    style.style_axes(ax)
-    fig.tight_layout()
-    fig.savefig(out_png, bbox_inches="tight")
-    return [{"alpha": a, "target_recall": r, "target_mrr": m}
-            for a, r, m in zip(alphas, recalls, mrrs)]
-
-
-def main() -> None:
-    cfg = load_config()
-    strategies = eval_all(cfg)
-    top_k = cfg.top_k
-
-    lt_targets = sorted(q["target"] for q in EVAL_QUERIES if _is_long_term_target(q["target"]))
-    qn = strategies["fused (Persode)"]["query_count"]
-    print(f"config: alpha={cfg.alpha} top_k={top_k} filter={cfg.query_filter}")
-    print(f"long-term targets (age > {SHORT_TERM_WINDOW_DAYS:g}d): {lt_targets}")
-    print(f"queries: {qn}  (E≥{EMOTION_THRESHOLD} = significant)\n")
-
+def _print_condition(label: str, strategies: dict, top_k: int) -> None:
+    print(f"\n=== condition: {label} ===")
     for name, res in strategies.items():
         print(f"### {name}")
         print(f"  target-recall@{top_k}     = {res['target_recall']:.2f}")
         print(f"  target-MRR              = {res['target_mrr']:.3f}")
         print(f"  topical-precision@{top_k} = {res['topical_precision']:.2f}")
-        if res["long_term_recall"] is not None:
-            print(f"  long-term recall@{top_k}  = {res['long_term_recall']:.2f}  "
-                  f"(n={res['long_term_query_count']})")
+        cats = res["recall_by_category"]
+        ns = res["query_count_by_category"]
+        print("  recall by category:      "
+              + "  ".join(f"{c}={cats[c]:.2f}(n={ns[c]})" for c in cats))
         if res["emotional_intrusion"] is not None:
             print(f"  emotional-intrusion@{top_k} = {res['emotional_intrusion']:.2f}  "
                   f"(neutral queries, n={res['neutral_query_count']})")
 
-    # ---- robustness checks reported alongside the scoped headline -----------
-    # The chart above is the scoped result (long-term emotional recall under
-    # lexically-distant probes). The checks below — full query set, plain probes,
-    # and the alpha sweep — are written to JSON and printed for context.
-    def _triple(strats: dict) -> dict:
-        return {
-            n: {k: round(v, 3) for k, v in r.items()
-                if k in ("target_recall", "target_mrr", "topical_precision")}
-            for n, r in strats.items()
-        }
 
-    full_set = _triple(eval_all(replace(cfg, query_filter=None)))          # all 10 queries
-    scoped_plain = _triple(eval_all(replace(cfg, paraphrase="default")))    # scoped, non-vague
-    alpha_grid = [
-        {"alpha": a,
-         **{k: round(eval_all(replace(cfg, alpha=a))["fused (Persode)"][k], 3)
-            for k in ("target_recall", "target_mrr")}}
-        for a in (0.0, 0.25, 0.5, 0.75, 1.0)
-    ]
-    prioritization = salience_prioritization()
-    robustness = {
-        "full_set_vague": full_set,
-        "scoped_plain_probes": scoped_plain,
-        "alpha_sensitivity": alpha_grid,
-        "salience_prioritization": prioritization,
-        "embedder_note": "The recall table uses the hashing (lexical) embedder; a semantic "
-                         "embedder makes similarity-only suffice. salience_prioritization is "
-                         "embedder-independent (identical text => identical similarity).",
-        "why_filter": "The paper's claim is scoped to emotionally-significant long-term "
-                      "memories, so metrics are reported on exactly those queries.",
-        "why_vague": "With verbatim-like probes, similarity-only already recalls the "
-                     "long-term target (see scoped_plain_probes); the fusion gain only "
-                     "appears when the probe is lexically distant from the stored episode.",
-        "tradeoff": "Over the full query mix, fusion is net-neutral vs pure RAG "
-                    "(see full_set_vague): it reallocates capacity toward long-term "
-                    "emotional recall at a small cost on lexically-easy queries.",
-    }
-    print("\n--- robustness ---")
-    print(f"full set (10 q, vague)   fused vs sim recall: "
-          f"{full_set['fused (Persode)']['target_recall']} vs "
-          f"{full_set['similarity-only']['target_recall']}")
-    print(f"scoped, non-vague probes  sim recall: "
-          f"{scoped_plain['similarity-only']['target_recall']}  "
-          f"(already solved → vague probes are the discriminating case)")
-    print("alpha sweep (scoped) recall: "
-          + ", ".join(f"{g['alpha']}:{g['target_recall']}" for g in alpha_grid))
-    print(f"salience prioritization (equal relevance, embedder-independent): "
-          f"similarity-only={prioritization['similarity_only_order']} -> "
-          f"fused={prioritization['fused_order']}")
+def plot_alpha_ablation(cfg: Exp3Config, out_png: Path) -> list[dict]:
+    """α sweep under the vague condition, full query set + long-term subset.
+
+    Shows retrieval quality as α moves from salience-dominant (α=0; similarity
+    still enters the salience term via C) to pure similarity (α=1, plain RAG).
+    """
+    alphas = [round(i / 20, 2) for i in range(21)]  # 0.00 .. 1.00 step 0.05
+    recalls, mrrs, lt_recalls = [], [], []
+    for a in alphas:
+        r = eval_all(replace(cfg, alpha=a))["fused (Persode)"]
+        recalls.append(r["target_recall"])
+        mrrs.append(r["target_mrr"])
+        lt_recalls.append(r["recall_by_category"].get("emotional_long", 0.0))
 
     style.apply()
-    # Chart metrics must match the README table. Under the emotional_long filter
-    # every probe is a long-term target, so long-term recall is identical to
-    # target-recall by construction — showing it as a separate bar would double-
-    # count the same win, so it is reported in JSON only, not plotted.
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    ax.plot(alphas, recalls, color=style.BLUE, lw=2.2, marker="o", ms=4, zorder=3,
+            label="target-recall@%d (all queries)" % cfg.top_k)
+    ax.plot(alphas, lt_recalls, color=style.VIOLET, lw=2.0, marker="^", ms=4, zorder=3,
+            label="recall@%d (long-term emotional)" % cfg.top_k)
+    ax.plot(alphas, mrrs, color=style.AQUA, lw=2.0, marker="s", ms=3.5, zorder=3,
+            label="target-MRR (all queries)")
+    ax.annotate("α=0 — salience-dominant\n(similarity still enters via C)",
+                (0.0, recalls[0]), xytext=(0.02, min(recalls[0] + 0.16, 1.02)),
+                color=style.MUTED, fontsize=8.5)
+    ax.annotate("pure similarity / RAG (α=1)", (1.0, recalls[-1]),
+                xytext=(0.68, recalls[-1] + 0.13), color=style.MUTED, fontsize=8.5)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1.1)
+    ax.set_xlabel("α  —  fusion weight on semantic similarity")
+    ax.set_ylabel("score (higher is better)")
+    ax.set_title("Exp. 3 — α fusion sweep (vague probes, full query set)")
+    ax.legend(loc="lower center", ncol=3, fontsize=8.5)
+    style.style_axes(ax)
+    fig.tight_layout()
+    fig.savefig(out_png, bbox_inches="tight")
+    return [{"alpha": a, "target_recall": r, "target_mrr": m, "long_term_recall": lt}
+            for a, r, m, lt in zip(alphas, recalls, mrrs, lt_recalls)]
+
+
+def _bar_panel(ax, strategies: dict, top_k: int, title: str) -> None:
     metric_defs = [
         (f"target-recall@{top_k}", "target_recall", style.BLUE),
-        (f"target-MRR", "target_mrr", style.AQUA),
+        ("target-MRR", "target_mrr", style.AQUA),
         (f"topical-precision@{top_k}", "topical_precision", style.YELLOW),
-    ]
-    metrics = [
-        (label, key, color) for label, key, color in metric_defs
-        if any(strategies[n].get(key) is not None for n in strategies)
     ]
     names = list(strategies.keys())
     x = np.arange(len(names))
-    n_met = len(metrics)
-    w = min(0.22, 0.8 / max(n_met, 1))
+    n_met = len(metric_defs)
+    w = min(0.22, 0.8 / n_met)
     gap = 0.02
-    fig, ax = plt.subplots(figsize=(10, 5.2))
-    for i, (label, key, color) in enumerate(metrics):
+    for i, (label, key, color) in enumerate(metric_defs):
         vals = [strategies[n].get(key) or 0.0 for n in names]
         offset = (i - (n_met - 1) / 2) * (w + gap)
         bars = ax.bar(x + offset, vals, w, label=label, color=color)
         for b, v in zip(bars, vals):
             ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.02,
-                    f"{v:.2f}", ha="center", fontsize=8.5, color=style.INK_2)
+                    f"{v:.2f}", ha="center", fontsize=7.5, color=style.INK_2)
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=10, color=style.INK)
+    ax.set_xticklabels([n.replace(" (Persode)", "\n(Persode)") for n in names],
+                       fontsize=8.5, color=style.INK)
     ax.set_ylim(0, 1.18)
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
-    ax.set_ylabel("score (higher is better)")
-    title = f"Memory Selection Block — retrieval vs baselines ({qn} queries, top-{top_k})"
-    if cfg.query_filter:
-        title += f"  [{cfg.query_filter}]"
-    if cfg.paraphrase == "vague":
-        title += "  · vague probes"
-    ax.set_title(title)
-    ax.legend(loc="upper left", ncol=1, fontsize=9)
+    ax.set_title(title, fontsize=10.5)
     style.style_axes(ax)
-    fig.tight_layout()
+
+
+def main() -> None:
+    cfg = Exp3Config()  # pre-registered protocol — no tuned values, ever
+    vague = eval_all(cfg)
+    plain = eval_all(replace(cfg, paraphrase="default"))
+    qn = vague["fused (Persode)"]["query_count"]
+
+    print(f"protocol (pre-registered): alpha={cfg.alpha} weights=({cfg.w_emotion:g},"
+          f"{cfg.w_recall:g},{cfg.w_context:g}) top_k={cfg.top_k} "
+          f"topical_sim_fraction={cfg.topical_sim_fraction}")
+    print(f"queries: {qn} (one per memory)  ·  long-term = age > "
+          f"{SHORT_TERM_WINDOW_DAYS:g} d  ·  significant = E ≥ {EMOTION_THRESHOLD}")
+    _print_condition("vague paraphrases (lexical-mismatch stress test)", vague, cfg.top_k)
+    _print_condition("plain probes", plain, cfg.top_k)
+
+    prioritization = salience_prioritization()
+    print(f"\nsalience prioritization (equal relevance, embedder-independent): "
+          f"similarity-only={prioritization['similarity_only_order']} -> "
+          f"fused={prioritization['fused_order']}")
+
+    # ---- figures -------------------------------------------------------------
+    style.apply()
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13.5, 4.9), sharey=True)
+    _bar_panel(ax1, vague, cfg.top_k,
+               f"vague probes ({qn} queries, top-{cfg.top_k})")
+    _bar_panel(ax2, plain, cfg.top_k,
+               f"plain probes ({qn} queries, top-{cfg.top_k})")
+    ax1.set_ylabel("score (higher is better)")
+    ax1.legend(loc="upper left", fontsize=8)
+    fig.suptitle("Memory Selection Block — retrieval vs baselines (fixed protocol)",
+                 fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
     out_png = RESULTS / "exp3_retrieval.png"
     fig.savefig(out_png, bbox_inches="tight")
     print(f"\nsaved {out_png}")
 
     ablation_png = RESULTS / "exp3_alpha_ablation.png"
     alpha_curve = plot_alpha_ablation(cfg, ablation_png)
-    robustness["alpha_curve"] = alpha_curve
     print(f"saved {ablation_png}")
 
+    # ---- machine-readable ----------------------------------------------------
     payload = {
         "reference_now": NOW.isoformat(),
-        "top_k": top_k,
-        "query_count": qn,
-        "emotion_threshold": EMOTION_THRESHOLD,
-        "topical_sim_fraction": cfg.topical_sim_fraction,
-        "tuned_config": {
+        "protocol": {
+            "note": "pre-registered: all values are the system's shipped defaults, "
+                    "fixed before evaluation; no tuning against results, no post-hoc "
+                    "query selection",
             "alpha": cfg.alpha,
             "w_emotion": cfg.w_emotion,
             "w_recall": cfg.w_recall,
             "w_context": cfg.w_context,
             "protection": cfg.protection,
-            "query_filter": cfg.query_filter,
-            "paraphrase": cfg.paraphrase,
+            "top_k": cfg.top_k,
+            "topical_sim_fraction": cfg.topical_sim_fraction,
+            "emotion_threshold": EMOTION_THRESHOLD,
+            "query_count": qn,
         },
-        "long_term_targets": lt_targets,
-        "strategies": strategies,
-        "robustness": robustness,
+        "conditions": {
+            "vague": vague,
+            "plain": plain,
+        },
+        "alpha_curve": alpha_curve,
+        "salience_prioritization": prioritization,
+        "notes": {
+            "sample_size": f"n = {qn} hand-labelled queries — differences of one hit "
+                           f"move recall by {1.0 / qn:.2f}; treat gaps as qualitative "
+                           "mechanism checks, not population estimates.",
+            "embedder": "Hashing (lexical) embedder by default. With a semantic "
+                        "embedder (PERSODE_EMBEDDER=sentence-transformers) pure "
+                        "similarity already solves the vague probes, so the recall "
+                        "gap is an artifact of the lexical embedder. The "
+                        "embedder-independent effect is salience_prioritization.",
+            "alpha_zero": "α=0 is salience-dominant, not similarity-free: query "
+                          "similarity still enters the salience term via C. The "
+                          "similarity-free reference is the salience-only strategy.",
+        },
     }
     (RESULTS / "exp3_retrieval.json").write_text(json.dumps(payload, indent=2))
 

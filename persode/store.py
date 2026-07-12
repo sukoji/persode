@@ -114,6 +114,13 @@ class MemoryStore:
         The contextual-relevance term C can optionally be supplied by the query
         similarity ("ensuring contextual relevance through effective retrieval").
 
+        Note that when ``use_query_relevance_as_context`` is true, similarity
+        also enters the salience term through C, so the *effective* weight on
+        similarity is ``α + (1-α)·wC/(wE+wR+wC)`` — e.g. with equal weights and
+        α = 0, similarity still contributes 1/3 of the fused score. Pass
+        ``use_query_relevance_as_context=False`` for a fusion whose salience
+        term is fully similarity-free (the memory's stored C is used instead).
+
         The full decayed strength is still reported as ``retention`` for
         transparency. When ``reinforce`` is true, every returned memory is marked
         as recalled, modelling the reinforcement of significant memories.

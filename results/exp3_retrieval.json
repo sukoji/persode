@@ -1,442 +1,1286 @@
 {
   "reference_now": "2025-01-24T12:00:00+00:00",
-  "top_k": 4,
-  "query_count": 5,
-  "emotion_threshold": 0.6,
-  "topical_sim_fraction": 0.35,
-  "tuned_config": {
+  "protocol": {
+    "note": "pre-registered: all values are the system's shipped defaults, fixed before evaluation; no tuning against results, no post-hoc query selection",
     "alpha": 0.5,
     "w_emotion": 1.0,
     "w_recall": 1.0,
     "w_context": 1.0,
     "protection": 0.9,
-    "query_filter": "emotional_long",
-    "paraphrase": "vague"
+    "top_k": 3,
+    "topical_sim_fraction": 0.5,
+    "emotion_threshold": 0.6,
+    "query_count": 10
   },
-  "long_term_targets": [
-    "anxious before final exam",
-    "argued with best friend",
-    "graduation ceremony celebration",
-    "lost beloved dog",
-    "peaceful walk park sunset"
-  ],
-  "strategies": {
-    "recency-only": {
-      "target_recall": 0.0,
-      "target_mrr": 0.0,
-      "topical_precision": 0.65,
-      "long_term_recall": 0.0,
-      "long_term_query_count": 5,
-      "emotional_intrusion": null,
-      "neutral_query_count": 0,
-      "query_count": 5,
-      "per_query": [
-        {
-          "query": "I still feel proud when I think back to finishing school",
-          "target": "graduation ceremony celebration",
-          "category": "emotional_long",
-          "retrieved": [
-            "took bus to work",
-            "bought groceries cooked pasta",
-            "family dinner with meat",
-            "car splashed water ruined favorite outfit"
-          ],
-          "target_hit": false,
-          "target_rank": null
+  "conditions": {
+    "vague": {
+      "recency-only": {
+        "target_recall": 0.3,
+        "target_mrr": 0.2928968253968254,
+        "topical_precision": 0.6333333333333334,
+        "recall_by_category": {
+          "emotional_long": 0.0,
+          "emotional_recent": 0.5,
+          "neutral_recent": 0.6666666666666666
         },
-        {
-          "query": "That stressful period before a big test still haunts me",
-          "target": "anxious before final exam",
-          "category": "emotional_long",
-          "retrieved": [
-            "took bus to work",
-            "bought groceries cooked pasta",
-            "family dinner with meat",
-            "car splashed water ruined favorite outfit"
-          ],
-          "target_hit": false,
-          "target_rank": null
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
         },
-        {
-          "query": "The emptiness after losing someone close never really left",
-          "target": "lost beloved dog",
-          "category": "emotional_long",
-          "retrieved": [
-            "took bus to work",
-            "bought groceries cooked pasta",
-            "family dinner with meat",
-            "car splashed water ruined favorite outfit"
-          ],
-          "target_hit": false,
-          "target_rank": null
+        "emotional_intrusion": 0.3333333333333333,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I still feel proud when I think back to finishing school",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 10
+          },
+          {
+            "query": "That warm evening sharing food with the people closest to me",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 3
+          },
+          {
+            "query": "Something on the street soaked and wrecked the clothes I loved most",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 4
+          },
+          {
+            "query": "That stressful period before a big test still haunts me",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 8
+          },
+          {
+            "query": "The emptiness after losing someone close never really left",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 9
+          },
+          {
+            "query": "What did I end up making at home after shopping for food?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "How did my dull ride to the office go?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "A quiet moment outdoors at dusk still calms me",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 6
+          },
+          {
+            "query": "I keep replaying a fallout with someone important to me",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "That uneventful stretch spent tidying things up at home",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 5
+          }
+        ]
+      },
+      "similarity-only": {
+        "target_recall": 0.3,
+        "target_mrr": 0.3113492063492063,
+        "topical_precision": 1.0,
+        "recall_by_category": {
+          "emotional_long": 0.4,
+          "emotional_recent": 0.0,
+          "neutral_recent": 0.3333333333333333
         },
-        {
-          "query": "A quiet moment outdoors at dusk still calms me",
-          "target": "peaceful walk park sunset",
-          "category": "emotional_long",
-          "retrieved": [
-            "took bus to work",
-            "bought groceries cooked pasta",
-            "family dinner with meat",
-            "car splashed water ruined favorite outfit"
-          ],
-          "target_hit": false,
-          "target_rank": null
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
         },
-        {
-          "query": "I keep replaying a fallout with someone important to me",
-          "target": "argued with best friend",
-          "category": "emotional_long",
-          "retrieved": [
-            "took bus to work",
-            "bought groceries cooked pasta",
-            "family dinner with meat",
-            "car splashed water ruined favorite outfit"
-          ],
-          "target_hit": false,
-          "target_rank": null
-        }
-      ]
+        "emotional_intrusion": 0.6666666666666666,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I still feel proud when I think back to finishing school",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "anxious before final exam",
+              "took bus to work"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "That warm evening sharing food with the people closest to me",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "took bus to work",
+              "argued with best friend",
+              "peaceful walk park sunset"
+            ],
+            "target_hit": false,
+            "target_rank": 10
+          },
+          {
+            "query": "Something on the street soaked and wrecked the clothes I loved most",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "reorganized closet did laundry",
+              "lost beloved dog",
+              "peaceful walk park sunset"
+            ],
+            "target_hit": false,
+            "target_rank": 4
+          },
+          {
+            "query": "That stressful period before a big test still haunts me",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "car splashed water ruined favorite outfit",
+              "bought groceries cooked pasta",
+              "graduation ceremony celebration"
+            ],
+            "target_hit": false,
+            "target_rank": 5
+          },
+          {
+            "query": "The emptiness after losing someone close never really left",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "reorganized closet did laundry",
+              "took bus to work",
+              "peaceful walk park sunset"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "What did I end up making at home after shopping for food?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "anxious before final exam",
+              "lost beloved dog"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "How did my dull ride to the office go?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "reorganized closet did laundry",
+              "took bus to work",
+              "graduation ceremony celebration"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "A quiet moment outdoors at dusk still calms me",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "car splashed water ruined favorite outfit",
+              "peaceful walk park sunset",
+              "bought groceries cooked pasta"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "I keep replaying a fallout with someone important to me",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "family dinner with meat",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 6
+          },
+          {
+            "query": "That uneventful stretch spent tidying things up at home",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "peaceful walk park sunset",
+              "graduation ceremony celebration",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 9
+          }
+        ]
+      },
+      "salience-only": {
+        "target_recall": 0.3,
+        "target_mrr": 0.2928968253968254,
+        "topical_precision": 0.7333333333333333,
+        "recall_by_category": {
+          "emotional_long": 0.4,
+          "emotional_recent": 0.5,
+          "neutral_recent": 0.0
+        },
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
+        },
+        "emotional_intrusion": 1.0,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I still feel proud when I think back to finishing school",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "That warm evening sharing food with the people closest to me",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 4
+          },
+          {
+            "query": "Something on the street soaked and wrecked the clothes I loved most",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 3
+          },
+          {
+            "query": "That stressful period before a big test still haunts me",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 5
+          },
+          {
+            "query": "The emptiness after losing someone close never really left",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "What did I end up making at home after shopping for food?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 8
+          },
+          {
+            "query": "How did my dull ride to the office go?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 10
+          },
+          {
+            "query": "A quiet moment outdoors at dusk still calms me",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "I keep replaying a fallout with someone important to me",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 6
+          },
+          {
+            "query": "That uneventful stretch spent tidying things up at home",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 9
+          }
+        ]
+      },
+      "fused (Persode)": {
+        "target_recall": 0.4,
+        "target_mrr": 0.37734126984126987,
+        "topical_precision": 0.9333333333333332,
+        "recall_by_category": {
+          "emotional_long": 0.6,
+          "emotional_recent": 0.5,
+          "neutral_recent": 0.0
+        },
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
+        },
+        "emotional_intrusion": 0.8888888888888888,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I still feel proud when I think back to finishing school",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "lost beloved dog",
+              "anxious before final exam"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "That warm evening sharing food with the people closest to me",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "car splashed water ruined favorite outfit",
+              "lost beloved dog",
+              "graduation ceremony celebration"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "Something on the street soaked and wrecked the clothes I loved most",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "car splashed water ruined favorite outfit",
+              "graduation ceremony celebration"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "That stressful period before a big test still haunts me",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "car splashed water ruined favorite outfit",
+              "graduation ceremony celebration",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 4
+          },
+          {
+            "query": "The emptiness after losing someone close never really left",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "What did I end up making at home after shopping for food?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "anxious before final exam"
+            ],
+            "target_hit": false,
+            "target_rank": 9
+          },
+          {
+            "query": "How did my dull ride to the office go?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "lost beloved dog",
+              "anxious before final exam"
+            ],
+            "target_hit": false,
+            "target_rank": 8
+          },
+          {
+            "query": "A quiet moment outdoors at dusk still calms me",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "car splashed water ruined favorite outfit",
+              "graduation ceremony celebration",
+              "peaceful walk park sunset"
+            ],
+            "target_hit": true,
+            "target_rank": 3
+          },
+          {
+            "query": "I keep replaying a fallout with someone important to me",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit",
+              "lost beloved dog"
+            ],
+            "target_hit": false,
+            "target_rank": 5
+          },
+          {
+            "query": "That uneventful stretch spent tidying things up at home",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "peaceful walk park sunset"
+            ],
+            "target_hit": false,
+            "target_rank": 9
+          }
+        ]
+      }
     },
-    "similarity-only": {
-      "target_recall": 0.4,
-      "target_mrr": 0.4019047619047619,
-      "topical_precision": 1.0,
-      "long_term_recall": 0.4,
-      "long_term_query_count": 5,
-      "emotional_intrusion": null,
-      "neutral_query_count": 0,
-      "query_count": 5,
-      "per_query": [
-        {
-          "query": "I still feel proud when I think back to finishing school",
-          "target": "graduation ceremony celebration",
-          "category": "emotional_long",
-          "retrieved": [
-            "graduation ceremony celebration",
-            "anxious before final exam",
-            "took bus to work",
-            "lost beloved dog"
-          ],
-          "target_hit": true,
-          "target_rank": 1
+    "plain": {
+      "recency-only": {
+        "target_recall": 0.3,
+        "target_mrr": 0.2928968253968254,
+        "topical_precision": 0.2333333333333333,
+        "recall_by_category": {
+          "emotional_long": 0.0,
+          "emotional_recent": 0.5,
+          "neutral_recent": 0.6666666666666666
         },
-        {
-          "query": "That stressful period before a big test still haunts me",
-          "target": "anxious before final exam",
-          "category": "emotional_long",
-          "retrieved": [
-            "car splashed water ruined favorite outfit",
-            "bought groceries cooked pasta",
-            "graduation ceremony celebration",
-            "family dinner with meat"
-          ],
-          "target_hit": false,
-          "target_rank": 5
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
         },
-        {
-          "query": "The emptiness after losing someone close never really left",
-          "target": "lost beloved dog",
-          "category": "emotional_long",
-          "retrieved": [
-            "reorganized closet did laundry",
-            "took bus to work",
-            "peaceful walk park sunset",
-            "graduation ceremony celebration"
-          ],
-          "target_hit": false,
-          "target_rank": 7
+        "emotional_intrusion": 0.3333333333333333,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I'm feeling really happy about a big achievement today",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 10
+          },
+          {
+            "query": "I remember a joyful meal I shared with my family",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 3
+          },
+          {
+            "query": "Something ruined my day and I'm upset about my clothes",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 4
+          },
+          {
+            "query": "I'm nervous and anxious about an upcoming exam",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 8
+          },
+          {
+            "query": "I miss someone I loved very much and I'm grieving",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 9
+          },
+          {
+            "query": "What did I cook after buying groceries?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "How was my commute on the bus?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I had a peaceful walk outdoors at sunset",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 6
+          },
+          {
+            "query": "I argued with a close friend and felt frustrated",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "What household chores did I do on a slow afternoon?",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "took bus to work",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": false,
+            "target_rank": 5
+          }
+        ]
+      },
+      "similarity-only": {
+        "target_recall": 1.0,
+        "target_mrr": 0.8333333333333333,
+        "topical_precision": 0.8666666666666666,
+        "recall_by_category": {
+          "emotional_long": 1.0,
+          "emotional_recent": 1.0,
+          "neutral_recent": 1.0
         },
-        {
-          "query": "A quiet moment outdoors at dusk still calms me",
-          "target": "peaceful walk park sunset",
-          "category": "emotional_long",
-          "retrieved": [
-            "car splashed water ruined favorite outfit",
-            "peaceful walk park sunset",
-            "bought groceries cooked pasta",
-            "graduation ceremony celebration"
-          ],
-          "target_hit": true,
-          "target_rank": 2
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
         },
-        {
-          "query": "I keep replaying a fallout with someone important to me",
-          "target": "argued with best friend",
-          "category": "emotional_long",
-          "retrieved": [
-            "graduation ceremony celebration",
-            "family dinner with meat",
-            "car splashed water ruined favorite outfit",
-            "bought groceries cooked pasta"
-          ],
-          "target_hit": false,
-          "target_rank": 6
-        }
-      ]
-    },
-    "fused (Persode)": {
-      "target_recall": 0.8,
-      "target_mrr": 0.5566666666666668,
-      "topical_precision": 0.95,
-      "long_term_recall": 0.8,
-      "long_term_query_count": 5,
-      "emotional_intrusion": null,
-      "neutral_query_count": 0,
-      "query_count": 5,
-      "per_query": [
-        {
-          "query": "I still feel proud when I think back to finishing school",
-          "target": "graduation ceremony celebration",
-          "category": "emotional_long",
-          "retrieved": [
-            "graduation ceremony celebration",
-            "lost beloved dog",
-            "anxious before final exam",
-            "car splashed water ruined favorite outfit"
-          ],
-          "target_hit": true,
-          "target_rank": 1
+        "emotional_intrusion": 0.5555555555555555,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I'm feeling really happy about a big achievement today",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "peaceful walk park sunset",
+              "reorganized closet did laundry"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I remember a joyful meal I shared with my family",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "family dinner with meat",
+              "anxious before final exam"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "Something ruined my day and I'm upset about my clothes",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "car splashed water ruined favorite outfit",
+              "argued with best friend",
+              "lost beloved dog"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I'm nervous and anxious about an upcoming exam",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "anxious before final exam",
+              "bought groceries cooked pasta",
+              "argued with best friend"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I miss someone I loved very much and I'm grieving",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "anxious before final exam"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "What did I cook after buying groceries?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "anxious before final exam",
+              "bought groceries cooked pasta"
+            ],
+            "target_hit": true,
+            "target_rank": 3
+          },
+          {
+            "query": "How was my commute on the bus?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "reorganized closet did laundry",
+              "took bus to work",
+              "graduation ceremony celebration"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "I had a peaceful walk outdoors at sunset",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "peaceful walk park sunset",
+              "graduation ceremony celebration",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I argued with a close friend and felt frustrated",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "argued with best friend",
+              "bought groceries cooked pasta",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "What household chores did I do on a slow afternoon?",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "reorganized closet did laundry",
+              "graduation ceremony celebration",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          }
+        ]
+      },
+      "salience-only": {
+        "target_recall": 0.3,
+        "target_mrr": 0.2928968253968254,
+        "topical_precision": 0.4666666666666666,
+        "recall_by_category": {
+          "emotional_long": 0.4,
+          "emotional_recent": 0.5,
+          "neutral_recent": 0.0
         },
-        {
-          "query": "That stressful period before a big test still haunts me",
-          "target": "anxious before final exam",
-          "category": "emotional_long",
-          "retrieved": [
-            "car splashed water ruined favorite outfit",
-            "graduation ceremony celebration",
-            "family dinner with meat",
-            "anxious before final exam"
-          ],
-          "target_hit": true,
-          "target_rank": 4
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
         },
-        {
-          "query": "The emptiness after losing someone close never really left",
-          "target": "lost beloved dog",
-          "category": "emotional_long",
-          "retrieved": [
-            "lost beloved dog",
-            "graduation ceremony celebration",
-            "car splashed water ruined favorite outfit",
-            "reorganized closet did laundry"
-          ],
-          "target_hit": true,
-          "target_rank": 1
+        "emotional_intrusion": 1.0,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I'm feeling really happy about a big achievement today",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          },
+          {
+            "query": "I remember a joyful meal I shared with my family",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 4
+          },
+          {
+            "query": "Something ruined my day and I'm upset about my clothes",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 3
+          },
+          {
+            "query": "I'm nervous and anxious about an upcoming exam",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 5
+          },
+          {
+            "query": "I miss someone I loved very much and I'm grieving",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "What did I cook after buying groceries?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 8
+          },
+          {
+            "query": "How was my commute on the bus?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 10
+          },
+          {
+            "query": "I had a peaceful walk outdoors at sunset",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "I argued with a close friend and felt frustrated",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 6
+          },
+          {
+            "query": "What household chores did I do on a slow afternoon?",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": false,
+            "target_rank": 9
+          }
+        ]
+      },
+      "fused (Persode)": {
+        "target_recall": 0.8,
+        "target_mrr": 0.7142857142857143,
+        "topical_precision": 0.7666666666666666,
+        "recall_by_category": {
+          "emotional_long": 1.0,
+          "emotional_recent": 1.0,
+          "neutral_recent": 0.3333333333333333
         },
-        {
-          "query": "A quiet moment outdoors at dusk still calms me",
-          "target": "peaceful walk park sunset",
-          "category": "emotional_long",
-          "retrieved": [
-            "car splashed water ruined favorite outfit",
-            "graduation ceremony celebration",
-            "peaceful walk park sunset",
-            "family dinner with meat"
-          ],
-          "target_hit": true,
-          "target_rank": 3
+        "query_count_by_category": {
+          "emotional_long": 5,
+          "emotional_recent": 2,
+          "neutral_recent": 3
         },
-        {
-          "query": "I keep replaying a fallout with someone important to me",
-          "target": "argued with best friend",
-          "category": "emotional_long",
-          "retrieved": [
-            "graduation ceremony celebration",
-            "car splashed water ruined favorite outfit",
-            "lost beloved dog",
-            "family dinner with meat"
-          ],
-          "target_hit": false,
-          "target_rank": 5
-        }
-      ]
+        "emotional_intrusion": 0.8888888888888888,
+        "neutral_query_count": 3,
+        "query_count": 10,
+        "per_query": [
+          {
+            "query": "I'm feeling really happy about a big achievement today",
+            "target": "graduation ceremony celebration",
+            "category": "emotional_long",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit",
+              "lost beloved dog"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I remember a joyful meal I shared with my family",
+            "target": "family dinner with meat",
+            "category": "emotional_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "lost beloved dog",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 3
+          },
+          {
+            "query": "Something ruined my day and I'm upset about my clothes",
+            "target": "car splashed water ruined favorite outfit",
+            "category": "emotional_recent",
+            "retrieved": [
+              "car splashed water ruined favorite outfit",
+              "lost beloved dog",
+              "graduation ceremony celebration"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I'm nervous and anxious about an upcoming exam",
+            "target": "anxious before final exam",
+            "category": "emotional_long",
+            "retrieved": [
+              "anxious before final exam",
+              "lost beloved dog",
+              "argued with best friend"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I miss someone I loved very much and I'm grieving",
+            "target": "lost beloved dog",
+            "category": "emotional_long",
+            "retrieved": [
+              "lost beloved dog",
+              "graduation ceremony celebration",
+              "anxious before final exam"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "What did I cook after buying groceries?",
+            "target": "bought groceries cooked pasta",
+            "category": "neutral_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "lost beloved dog",
+              "anxious before final exam"
+            ],
+            "target_hit": false,
+            "target_rank": 6
+          },
+          {
+            "query": "How was my commute on the bus?",
+            "target": "took bus to work",
+            "category": "neutral_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "car splashed water ruined favorite outfit",
+              "lost beloved dog"
+            ],
+            "target_hit": false,
+            "target_rank": 7
+          },
+          {
+            "query": "I had a peaceful walk outdoors at sunset",
+            "target": "peaceful walk park sunset",
+            "category": "emotional_long",
+            "retrieved": [
+              "peaceful walk park sunset",
+              "graduation ceremony celebration",
+              "lost beloved dog"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "I argued with a close friend and felt frustrated",
+            "target": "argued with best friend",
+            "category": "emotional_long",
+            "retrieved": [
+              "argued with best friend",
+              "lost beloved dog",
+              "car splashed water ruined favorite outfit"
+            ],
+            "target_hit": true,
+            "target_rank": 1
+          },
+          {
+            "query": "What household chores did I do on a slow afternoon?",
+            "target": "reorganized closet did laundry",
+            "category": "neutral_recent",
+            "retrieved": [
+              "graduation ceremony celebration",
+              "reorganized closet did laundry",
+              "family dinner with meat"
+            ],
+            "target_hit": true,
+            "target_rank": 2
+          }
+        ]
+      }
     }
   },
-  "robustness": {
-    "full_set_vague": {
-      "recency-only": {
-        "target_recall": 0.4,
-        "target_mrr": 0.228,
-        "topical_precision": 0.6
-      },
-      "similarity-only": {
-        "target_recall": 0.7,
-        "target_mrr": 0.534,
-        "topical_precision": 1.0
-      },
-      "fused (Persode)": {
-        "target_recall": 0.7,
-        "target_mrr": 0.493,
-        "topical_precision": 0.975
-      }
+  "alpha_curve": [
+    {
+      "alpha": 0.0,
+      "target_recall": 0.3,
+      "target_mrr": 0.2876190476190476,
+      "long_term_recall": 0.4
     },
-    "scoped_plain_probes": {
-      "recency-only": {
-        "target_recall": 0.0,
-        "target_mrr": 0.0,
-        "topical_precision": 0.2
-      },
-      "similarity-only": {
-        "target_recall": 1.0,
-        "target_mrr": 1.0,
-        "topical_precision": 0.75
-      },
-      "fused (Persode)": {
-        "target_recall": 1.0,
-        "target_mrr": 1.0,
-        "topical_precision": 0.55
-      }
+    {
+      "alpha": 0.05,
+      "target_recall": 0.3,
+      "target_mrr": 0.2876190476190476,
+      "long_term_recall": 0.4
     },
-    "alpha_sensitivity": [
-      {
-        "alpha": 0.0,
-        "target_recall": 0.4,
-        "target_mrr": 0.402
-      },
-      {
-        "alpha": 0.25,
-        "target_recall": 0.4,
-        "target_mrr": 0.513
-      },
-      {
-        "alpha": 0.5,
-        "target_recall": 0.8,
-        "target_mrr": 0.557
-      },
-      {
-        "alpha": 0.75,
-        "target_recall": 0.8,
-        "target_mrr": 0.44
-      },
-      {
-        "alpha": 1.0,
-        "target_recall": 0.4,
-        "target_mrr": 0.402
-      }
+    {
+      "alpha": 0.1,
+      "target_recall": 0.3,
+      "target_mrr": 0.33999999999999997,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.15,
+      "target_recall": 0.3,
+      "target_mrr": 0.3433333333333334,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.2,
+      "target_recall": 0.3,
+      "target_mrr": 0.3433333333333334,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.25,
+      "target_recall": 0.3,
+      "target_mrr": 0.3433333333333334,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.3,
+      "target_recall": 0.3,
+      "target_mrr": 0.36,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.35,
+      "target_recall": 0.3,
+      "target_mrr": 0.36138888888888887,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.4,
+      "target_recall": 0.3,
+      "target_mrr": 0.3647222222222223,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.45,
+      "target_recall": 0.4,
+      "target_mrr": 0.37734126984126987,
+      "long_term_recall": 0.6
+    },
+    {
+      "alpha": 0.5,
+      "target_recall": 0.4,
+      "target_mrr": 0.37734126984126987,
+      "long_term_recall": 0.6
+    },
+    {
+      "alpha": 0.55,
+      "target_recall": 0.4,
+      "target_mrr": 0.37734126984126987,
+      "long_term_recall": 0.6
+    },
+    {
+      "alpha": 0.6,
+      "target_recall": 0.4,
+      "target_mrr": 0.36484126984126986,
+      "long_term_recall": 0.6
+    },
+    {
+      "alpha": 0.65,
+      "target_recall": 0.4,
+      "target_mrr": 0.3181746031746032,
+      "long_term_recall": 0.6
+    },
+    {
+      "alpha": 0.7,
+      "target_recall": 0.4,
+      "target_mrr": 0.33305555555555555,
+      "long_term_recall": 0.6
+    },
+    {
+      "alpha": 0.75,
+      "target_recall": 0.3,
+      "target_mrr": 0.3144444444444444,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.8,
+      "target_recall": 0.3,
+      "target_mrr": 0.3158333333333333,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.85,
+      "target_recall": 0.3,
+      "target_mrr": 0.3158333333333333,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.9,
+      "target_recall": 0.4,
+      "target_mrr": 0.32416666666666666,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 0.95,
+      "target_recall": 0.4,
+      "target_mrr": 0.3408333333333333,
+      "long_term_recall": 0.4
+    },
+    {
+      "alpha": 1.0,
+      "target_recall": 0.3,
+      "target_mrr": 0.3113492063492063,
+      "long_term_recall": 0.4
+    }
+  ],
+  "salience_prioritization": {
+    "similarity_is_tied": true,
+    "similarity_only_order": [
+      "neutral",
+      "significant"
     ],
-    "salience_prioritization": {
-      "similarity_is_tied": true,
-      "similarity_only_order": [
-        "neutral",
-        "significant"
-      ],
-      "fused_order": [
-        "significant",
-        "neutral"
-      ],
-      "fused_ranks_significant_first": true
-    },
-    "embedder_note": "The recall table uses the hashing (lexical) embedder; a semantic embedder makes similarity-only suffice. salience_prioritization is embedder-independent (identical text => identical similarity).",
-    "why_filter": "The paper's claim is scoped to emotionally-significant long-term memories, so metrics are reported on exactly those queries.",
-    "why_vague": "With verbatim-like probes, similarity-only already recalls the long-term target (see scoped_plain_probes); the fusion gain only appears when the probe is lexically distant from the stored episode.",
-    "tradeoff": "Over the full query mix, fusion is net-neutral vs pure RAG (see full_set_vague): it reallocates capacity toward long-term emotional recall at a small cost on lexically-easy queries.",
-    "alpha_curve": [
-      {
-        "alpha": 0.0,
-        "target_recall": 0.4,
-        "target_mrr": 0.4019047619047619
-      },
-      {
-        "alpha": 0.05,
-        "target_recall": 0.4,
-        "target_mrr": 0.4019047619047619
-      },
-      {
-        "alpha": 0.1,
-        "target_recall": 0.4,
-        "target_mrr": 0.5066666666666666
-      },
-      {
-        "alpha": 0.15,
-        "target_recall": 0.4,
-        "target_mrr": 0.5133333333333334
-      },
-      {
-        "alpha": 0.2,
-        "target_recall": 0.4,
-        "target_mrr": 0.5133333333333334
-      },
-      {
-        "alpha": 0.25,
-        "target_recall": 0.4,
-        "target_mrr": 0.5133333333333334
-      },
-      {
-        "alpha": 0.3,
-        "target_recall": 0.4,
-        "target_mrr": 0.5133333333333334
-      },
-      {
-        "alpha": 0.35,
-        "target_recall": 0.4,
-        "target_mrr": 0.5133333333333334
-      },
-      {
-        "alpha": 0.4,
-        "target_recall": 0.4,
-        "target_mrr": 0.5200000000000001
-      },
-      {
-        "alpha": 0.45,
-        "target_recall": 0.8,
-        "target_mrr": 0.5566666666666668
-      },
-      {
-        "alpha": 0.5,
-        "target_recall": 0.8,
-        "target_mrr": 0.5566666666666668
-      },
-      {
-        "alpha": 0.55,
-        "target_recall": 0.8,
-        "target_mrr": 0.5566666666666668
-      },
-      {
-        "alpha": 0.6,
-        "target_recall": 0.8,
-        "target_mrr": 0.5566666666666668
-      },
-      {
-        "alpha": 0.65,
-        "target_recall": 0.8,
-        "target_mrr": 0.4566666666666667
-      },
-      {
-        "alpha": 0.7,
-        "target_recall": 0.8,
-        "target_mrr": 0.49000000000000005
-      },
-      {
-        "alpha": 0.75,
-        "target_recall": 0.8,
-        "target_mrr": 0.44000000000000006
-      },
-      {
-        "alpha": 0.8,
-        "target_recall": 0.8,
-        "target_mrr": 0.44000000000000006
-      },
-      {
-        "alpha": 0.85,
-        "target_recall": 0.8,
-        "target_mrr": 0.44000000000000006
-      },
-      {
-        "alpha": 0.9,
-        "target_recall": 0.8,
-        "target_mrr": 0.44000000000000006
-      },
-      {
-        "alpha": 0.95,
-        "target_recall": 0.8,
-        "target_mrr": 0.44000000000000006
-      },
-      {
-        "alpha": 1.0,
-        "target_recall": 0.4,
-        "target_mrr": 0.4019047619047619
-      }
-    ]
+    "fused_order": [
+      "significant",
+      "neutral"
+    ],
+    "fused_ranks_significant_first": true
+  },
+  "notes": {
+    "sample_size": "n = 10 hand-labelled queries \u2014 differences of one hit move recall by 0.10; treat gaps as qualitative mechanism checks, not population estimates.",
+    "embedder": "Hashing (lexical) embedder by default. With a semantic embedder (PERSODE_EMBEDDER=sentence-transformers) pure similarity already solves the vague probes, so the recall gap is an artifact of the lexical embedder. The embedder-independent effect is salience_prioritization.",
+    "alpha_zero": "\u03b1=0 is salience-dominant, not similarity-free: query similarity still enters the salience term via C. The similarity-free reference is the salience-only strategy."
   }
 }

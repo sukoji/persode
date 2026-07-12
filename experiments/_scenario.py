@@ -151,11 +151,20 @@ EVAL_QUERIES = [
     },
 ]
 
-# Harder paraphrases for long-term probes — lexical overlap with memory text is
-# intentionally low so pure RAG struggles while salience-fused retrieval survives.
+# Vague paraphrases — one per target, written under a single uniform rule applied
+# to EVERY memory (not only the ones a given method favours): re-describe the
+# episode without reusing any content word from the stored memory text, so
+# lexical overlap with the store is minimal across the board. This makes the
+# "vague" condition a symmetric stress test of retrieval under lexical mismatch.
 QUERY_PARAPHRASES_VAGUE: dict[str, str] = {
     "graduation ceremony celebration": (
         "I still feel proud when I think back to finishing school"
+    ),
+    "family dinner with meat": (
+        "That warm evening sharing food with the people closest to me"
+    ),
+    "car splashed water ruined favorite outfit": (
+        "Something on the street soaked and wrecked the clothes I loved most"
     ),
     "anxious before final exam": (
         "That stressful period before a big test still haunts me"
@@ -163,11 +172,20 @@ QUERY_PARAPHRASES_VAGUE: dict[str, str] = {
     "lost beloved dog": (
         "The emptiness after losing someone close never really left"
     ),
-    "argued with best friend": (
-        "I keep replaying a fallout with someone important to me"
+    "bought groceries cooked pasta": (
+        "What did I end up making at home after shopping for food?"
+    ),
+    "took bus to work": (
+        "How did my dull ride to the office go?"
     ),
     "peaceful walk park sunset": (
         "A quiet moment outdoors at dusk still calms me"
+    ),
+    "argued with best friend": (
+        "I keep replaying a fallout with someone important to me"
+    ),
+    "reorganized closet did laundry": (
+        "That uneventful stretch spent tidying things up at home"
     ),
 }
 
