@@ -83,6 +83,7 @@ python experiments/run_all.py
 | **2** | [기억 강도 점수(Eq. 1)](experiments/exp2_memory_scoring.py) | 감정 가중 점수가 한 달 된 강렬한 기억(`lost beloved dog`, E = 0.95)을 균형값의 **×2.6**, 7위 → 5위로 상승. |
 | **3** | [현저성 인식 검색](experiments/exp3_retrieval.py) | 어휘적으로 먼 probe에서 융합(α = 0.5)이 장기 감정 recall@3를 **0.60**으로 끌어올림(순수 유사도 **0.40**) — 중립/일반 질의에서의 비용도 함께 공개(아래 상세). |
 | **4** | [Dual-Template 생성](experiments/exp4_visual_prompt.py) | 한 발화 → 일기 + 시각 프롬프트; 온보딩 속성 **24/24** 주입, 프로필별 프롬프트 상이, 감정 무드 공유. |
+| **5** | [공개 벤치마크 — LoCoMo](experiments/exp5_locomo.py) | 1,535 QA / 5.9k 발화 근거 검색: 융합 **0.30** vs 순수 유사도 **0.35** recall@5 (MiniLM) — *사실형* QA에서는 salience prior가 측정된 비용, 융합의 적용 범위를 경계 지음. |
 
 <p align="center">
   <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — 망각곡선">
@@ -110,13 +111,36 @@ python experiments/run_all.py
 
 <p align="center"><img src="results/exp3_alpha_ablation.png" width="72%" alt="Exp 3 — α 융합 ablation 스윕"></p>
 
+### Exp. 5 — 공개 벤치마크 (LoCoMo)
+
+[LoCoMo](https://github.com/snap-research/locomo) (Maharana et al., ACL 2024)는 초장기 멀티세션 대화(10개 대화, 5,882 발화, 실제 세션 타임스탬프)와 QA마다 정확한 **근거 발화** 주석을 제공 — Memory Selection Block을 LLM 개입 없이 순수 검색으로 채점할 수 있습니다. 프로토콜은 Exp. 3처럼 사전 등록(기억 구성, 동일 4개 전략·기본값, 메트릭, QA 포함 규칙 전부 사전 확정; adversarial 카테고리는 설계상 정답 없음이라 사전 제외). 1,535 QA 평가; CC BY-NC 데이터는 실행 시 다운로드하며 재배포하지 않습니다.
+
+```bash
+python experiments/exp5_locomo.py   # 첫 실행 시 데이터 다운로드
+```
+
+| 전략 | recall@5 (해싱) | recall@5 (MiniLM) | MRR (MiniLM) |
+|---|---:|---:|---:|
+| recency-only | 0.00 | 0.00 | 0.01 |
+| similarity-only (순수 RAG) | **0.15** | **0.35** | **0.29** |
+| salience-only (유사도 미사용) | 0.01 | 0.01 | 0.02 |
+| fused (α = 0.5) | 0.13 | 0.30 | 0.26 |
+
+<p align="center"><img src="results/exp5_locomo.png" width="88%" alt="Exp 5 — LoCoMo 근거 검색"></p>
+
+이 결과가 긋는 경계:
+
+- **사실형 QA에서 salience prior는 이득이 아니라 비용:** 융합이 순수 유사도보다 상대 recall@5 ~15% 뒤짐 — 두 임베더, 4개 카테고리, 10개 대화 전부에서 일관(0.302 ± 0.055 vs 0.352 ± 0.068). LoCoMo 질문은 *사실*을 묻기에("When did Caroline…") 감정 현저성 가중은 on-topic 발화를 밀어낼 뿐.
+- **Exp. 3과 합치면 메커니즘의 위치가 특정됨:** salience 융합은 어휘적으로 모호한 성찰형 probe의 감정 *재부상*(저널링 에이전트에서의 설계 목표)에 도움되고, 사실 *조회*에는 해가 됨. 프로덕션에선 질의 유형별로 융합을 게이트해야 함 — 향후 과제로 명시.
+- **어디에도 천장 없음:** 최고 구성이 recall@5 0.35 — LoCoMo가 어려운 검색 벤치마크라는 기존 평가와 정합; 포화되거나 골라낸 수치 없음.
+
 ## 테스트
 
 ```bash
 python -m pytest    # 39개 테스트, 네트워크 불필요
 ```
 
-감쇠 보정, Eq. 1 점수·통합, 검색 융합·강화, RAG 기반 응답, 저널 회상 중복 제거, analyzer 추출, 템플릿 결정성, 그리고 위 모든 수치를 고정하는 결과 회귀 검사를 커버합니다 — 융합의 비용(일반 probe·중립 질의 손실) 보고가 사라지면 실패하는 정직성 가드 포함. 의미 임베더가 설치된 경우에만 실행되는 테스트가 하나 더 있습니다.
+감쇠 보정, Eq. 1 점수·통합, 검색 융합·강화, RAG 기반 응답, 저널 회상 중복 제거, analyzer 추출, 템플릿 결정성, 그리고 위 모든 수치를 고정하는 결과 회귀 검사를 커버합니다 — 융합의 비용(일반 probe·중립 질의 손실, LoCoMo 사실형 QA 격차) 보고가 사라지면 실패하는 정직성 가드 포함. 선택 의존성이 필요한 테스트 둘: 의미 임베더, 다운로드된 LoCoMo 데이터.
 
 ## 구현 노트
 
@@ -124,7 +148,7 @@ python -m pytest    # 39개 테스트, 네트워크 불필요
 
 **이 코드에서 설정**(논문이 값을 열어둔 부분). λ = ln 4⁄6 (6일 / 25% 기준에서 유도); 통합 `λ_eff = λ·(1 − γ·k)` — 현저성 높은 기억이 단기 창 이후에도 유지되게 함; 검색 융합 `α·similarity + (1−α)·salience`, α = 0.5 (유사도가 C를 통해 salience에도 유입되므로 동일 가중치에서 α = 0.5의 실효 유사도 가중치는 ≈ 0.67); 회상 시 강화는 `last_recalled` 기준으로 감쇠 시계를 재시작하며 형성 시점은 절대 덮어쓰지 않음(간격 반복); GPT-4o / DALL·E 3 대체용 오프라인 어휘·템플릿·해싱 스텁. Exp. 3 평가 프로토콜은 이 기본값들로 사전 등록 — 결과에 맞춘 하이퍼파라미터·질의 선택 없음.
 
-**미포함.** 유저 스터디(향후 과제)와 실제 이미지 생성; 평가 시나리오는 소규모 수작업 셋(질의 n = 10)으로 공개 벤치마크가 아님; 오프라인 analyzer는 키워드 기반.
+**미포함.** 유저 스터디(향후 과제)와 실제 이미지 생성; 오프라인 analyzer는 키워드 기반. Exp. 3 시나리오는 소규모 수작업 셋(질의 n = 10) — Exp. 5가 공개 벤치마크(LoCoMo, 1,535 QA)로 보완하지만, 감정 현저성 라벨을 가진 공개 데이터셋은 없어 거기서의 E는 시스템 자체 analyzer 산출이며, 감정 재부상 주장 자체는 여전히 Exp. 3과 궁극적으로는 향후 유저 스터디에 의존. 질의 유형별 융합 게이팅(성찰형엔 salience, 사실형엔 순수 유사도)은 향후 과제.
 
 ## 인용
 

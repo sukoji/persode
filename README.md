@@ -84,6 +84,7 @@ python experiments/run_all.py
 | **2** | [Memory-strength scoring (Eq. 1)](experiments/exp2_memory_scoring.py) | Emotion-weighted scoring raises a month-old intense memory (`lost beloved dog`, E = 0.95) to **×2.6** its balanced value, 7th → 5th in the store. |
 | **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | Under lexically-distant probes, fusion (α = 0.5) lifts long-term emotional recall@3 to **0.60** vs **0.40** for pure similarity — at a disclosed cost on neutral/plain queries (see detail below). |
 | **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → diary + visual prompt; **24/24** onboarding attributes injected, prompts differ by profile, emotion-mood shared. |
+| **5** | [Public benchmark — LoCoMo](experiments/exp5_locomo.py) | Evidence retrieval over 1,535 QA / 5.9k turns: fused **0.30** vs similarity-only **0.35** recall@5 (MiniLM) — on *factual* QA the salience prior is a measured cost, bounding where fusion applies. |
 
 <p align="center">
   <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — forgetting curve">
@@ -111,13 +112,36 @@ What fusion buys — and what it costs ([`results/exp3_retrieval.json`](results/
 
 <p align="center"><img src="results/exp3_alpha_ablation.png" width="72%" alt="Exp 3 — α fusion ablation sweep"></p>
 
+### Exp. 5 — public benchmark (LoCoMo)
+
+[LoCoMo](https://github.com/snap-research/locomo) (Maharana et al., ACL 2024) provides very-long multi-session conversations (10 dialogues, 5,882 turns, real session timestamps) whose QA pairs are annotated with the exact **evidence turns** — so the Memory Selection Block can be scored as pure retrieval, with no LLM in the loop. The protocol is pre-registered like Exp. 3 (memory construction, the same four strategies at shipped defaults, metrics, and QA-inclusion rules all fixed a priori; the adversarial category is excluded because it is unanswerable by design). 1,535 QA evaluated; the CC BY-NC data is downloaded on demand, never redistributed.
+
+```bash
+python experiments/exp5_locomo.py   # downloads data on first run
+```
+
+| Strategy | recall@5 (hashing) | recall@5 (MiniLM) | MRR (MiniLM) |
+|---|---:|---:|---:|
+| recency-only | 0.00 | 0.00 | 0.01 |
+| similarity-only (pure RAG) | **0.15** | **0.35** | **0.29** |
+| salience-only (similarity-free) | 0.01 | 0.01 | 0.02 |
+| fused (α = 0.5) | 0.13 | 0.30 | 0.26 |
+
+<p align="center"><img src="results/exp5_locomo.png" width="88%" alt="Exp 5 — LoCoMo evidence retrieval"></p>
+
+What this bounds:
+
+- **On factual QA, the salience prior is a cost, not a gain:** fusion trails pure similarity by ~15 % relative recall@5, consistently across both embedders, all four categories, and all 10 conversations (0.302 ± 0.055 vs 0.352 ± 0.068). LoCoMo questions ask *facts* ("When did Caroline…"), so weighting emotional salience into the ranking only displaces on-topic turns.
+- **Together with Exp. 3, this locates the mechanism:** salience fusion helps emotional *resurfacing* under lexically-vague reflective probes (its design target in a journaling agent) and hurts factual *lookup*. A production system should gate fusion by query type rather than apply it globally — noted as future work.
+- **No ceiling anywhere:** the best configuration reaches 0.35 recall@5, in line with LoCoMo's reputation as a hard retrieval benchmark; nothing here is saturated or hand-picked.
+
 ## Tests
 
 ```bash
 python -m pytest    # 39 tests, no network
 ```
 
-Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and reinforcement, RAG-grounded responses, journal recall de-duplication, analyzer extraction, template determinism, and results-regression checks that pin every number above — including honesty guards that fail if fusion's costs (plain-probe and neutral-query losses) stop being reported. One further test runs only with the semantic embedder installed.
+Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and reinforcement, RAG-grounded responses, journal recall de-duplication, analyzer extraction, template determinism, and results-regression checks that pin every number above — including honesty guards that fail if fusion's costs (plain-probe and neutral-query losses, and the LoCoMo factual-QA gap) stop being reported. Two further tests need optional extras: the semantic embedder, and the downloaded LoCoMo data.
 
 ## Implementation notes
 
@@ -125,7 +149,7 @@ Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and r
 
 **Set in this code** (where the paper leaves values open). λ = ln 4⁄6 (from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)`, so salient memories persist past the short-term window; retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5 (note similarity also enters salience via C, so the effective similarity weight at α = 0.5 is ≈ 0.67 with equal weights); reinforcement on recall restarts the decay clock at `last_recalled` without rewriting the formation date (spaced repetition); offline lexicon / template / hashing stubs standing in for GPT-4o / DALL·E 3. The Exp. 3 evaluation protocol is pre-registered from these defaults — no hyperparameter or query selection against the results.
 
-**Not included.** The user study (future work) and real image generation; the evaluation scenario is a small hand-labelled set (n = 10 queries), not a public benchmark; the offline analyzer is keyword-based.
+**Not included.** The user study (future work) and real image generation; the offline analyzer is keyword-based. Exp. 3's scenario is a small hand-labelled set (n = 10 queries) — Exp. 5 complements it with a public benchmark (LoCoMo, 1,535 QA), but no public dataset carries emotional-salience labels, so there E comes from the system's own analyzer and the emotional-resurfacing claim itself still rests on Exp. 3 and, ultimately, the future user study. Query-type gating of fusion (apply salience to reflective queries, plain similarity to factual ones) is future work.
 
 ## Citation
 

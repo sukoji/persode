@@ -14,3 +14,4 @@ env/
 *.log
 .claude/
 .vscode/
+experiments/data/

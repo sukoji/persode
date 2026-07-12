@@ -151,6 +151,31 @@ def test_exp3_salience_prioritization_is_embedder_independent():
     assert r["fused_order"] == ["significant", "neutral"]
 
 
+def test_exp5_locomo_headline_and_honesty():
+    # Pins the LoCoMo (public benchmark) hashing-embedder numbers the README
+    # reports, and the honesty guard: on factual QA the salience prior COSTS
+    # recall — fused must trail pure similarity, and that gap must stay reported.
+    # Skips when the (CC BY-NC, not redistributed) data has not been downloaded.
+    import pytest
+    import exp5_locomo as X
+    if not X.DATA_PATH.exists():
+        pytest.skip("LoCoMo data not downloaded (run experiments/exp5_locomo.py)")
+
+    res = X.evaluate("hashing")
+    s = res["strategies"]
+    assert s["fused (Persode)"]["query_count"] == 1535
+    assert round(s["similarity-only"]["evidence_recall@5"], 3) == 0.152
+    assert round(s["fused (Persode)"]["evidence_recall@5"], 3) == 0.135
+    assert round(s["salience-only"]["evidence_recall@5"], 3) == 0.011
+    assert round(s["recency-only"]["evidence_recall@5"], 3) == 0.002
+    # Honesty guard: the factual-QA cost of fusion is real and stays visible.
+    assert s["fused (Persode)"]["evidence_recall@5"] < s["similarity-only"]["evidence_recall@5"]
+    assert s["fused (Persode)"]["mrr"] < s["similarity-only"]["mrr"]
+    # Exclusions are accounted for, never silent.
+    assert res["excluded"] == {"adversarial_cat5": 446, "no_evidence": 4,
+                               "unresolvable_evidence": 1}
+
+
 def test_exp4_personalization_is_verified():
     # The onboarding -> visual personalization claim, quantified: every onboarding
     # attribute is injected, the two profiles differ, and they share the emotion mood.

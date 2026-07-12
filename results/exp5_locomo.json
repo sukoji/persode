@@ -1,0 +1,287 @@
+{
+  "benchmark": {
+    "name": "LoCoMo (Maharana et al., ACL 2024)",
+    "url": "https://github.com/snap-research/locomo",
+    "license": "CC BY-NC 4.0 \u2014 data downloaded on demand, not redistributed",
+    "data_sha256": "79fa87e90f04081343b8c8debecb80a9a6842b76a7aa537dc9fdf651ea698ff4"
+  },
+  "protocol": {
+    "note": "pre-registered: memory construction, strategies, metrics and QA inclusion rules fixed before any result was computed; shipped scorer/fusion defaults; adversarial category excluded a priori (unanswerable by design)",
+    "alpha": 0.5,
+    "top_ks": [
+      5,
+      10
+    ],
+    "primary_k": 5,
+    "stored_C": 0.5,
+    "emotion_source": "offline lexicon analyzer (system ingestion path)"
+  },
+  "runs": {
+    "hashing": {
+      "excluded": {
+        "adversarial_cat5": 446,
+        "no_evidence": 4,
+        "unresolvable_evidence": 1
+      },
+      "strategies": {
+        "recency-only": {
+          "evidence_recall@5": 0.0018,
+          "evidence_recall@10": 0.0099,
+          "hit@5": 0.0026,
+          "hit@10": 0.0111,
+          "mrr": 0.0099,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.0018,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.0,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.0027,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.0024,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.0018,
+            "std": 0.0025,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        },
+        "similarity-only": {
+          "evidence_recall@5": 0.1525,
+          "evidence_recall@10": 0.2126,
+          "hit@5": 0.1687,
+          "hit@10": 0.2371,
+          "mrr": 0.1359,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.029,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.1872,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.0318,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.1938,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.155,
+            "std": 0.0383,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        },
+        "salience-only": {
+          "evidence_recall@5": 0.0112,
+          "evidence_recall@10": 0.0254,
+          "hit@5": 0.0189,
+          "hit@10": 0.0417,
+          "mrr": 0.0198,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.0121,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.0141,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.0245,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.0083,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.0113,
+            "std": 0.0106,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        },
+        "fused (Persode)": {
+          "evidence_recall@5": 0.1347,
+          "evidence_recall@10": 0.1847,
+          "hit@5": 0.1511,
+          "hit@10": 0.2117,
+          "mrr": 0.1156,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.0281,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.1534,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.036,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.1742,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.1387,
+            "std": 0.0387,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        }
+      }
+    },
+    "sentence-transformers": {
+      "excluded": {
+        "adversarial_cat5": 446,
+        "no_evidence": 4,
+        "unresolvable_evidence": 1
+      },
+      "strategies": {
+        "recency-only": {
+          "evidence_recall@5": 0.0018,
+          "evidence_recall@10": 0.0099,
+          "hit@5": 0.0026,
+          "hit@10": 0.0111,
+          "mrr": 0.0099,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.0018,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.0,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.0027,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.0024,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.0018,
+            "std": 0.0025,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        },
+        "similarity-only": {
+          "evidence_recall@5": 0.3533,
+          "evidence_recall@10": 0.4447,
+          "hit@5": 0.4026,
+          "hit@10": 0.5042,
+          "mrr": 0.288,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.1765,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.4044,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.1721,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.413,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.3519,
+            "std": 0.068,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        },
+        "salience-only": {
+          "evidence_recall@5": 0.0112,
+          "evidence_recall@10": 0.0254,
+          "hit@5": 0.0189,
+          "hit@10": 0.0417,
+          "mrr": 0.0198,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.0121,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.0141,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.0245,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.0083,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.0113,
+            "std": 0.0106,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        },
+        "fused (Persode)": {
+          "evidence_recall@5": 0.2998,
+          "evidence_recall@10": 0.3771,
+          "hit@5": 0.3537,
+          "hit@10": 0.4391,
+          "mrr": 0.2556,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.1562,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.3784,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.1205,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.3377,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.302,
+            "std": 0.0553,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        }
+      }
+    }
+  }
+}
