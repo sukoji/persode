@@ -146,7 +146,7 @@ What this shows:
 
 The remaining gap after Exp. 5 was that no public benchmark carries emotional-salience labels, so the emotional-resurfacing claim rested on Exp. 3's hand-made n = 10 scenario. [EpiRec](https://github.com/sukoji/epirec) closes it: 12 personas, 168 timestamped journal episodes with authored intensity/valence labels, 504 probes in three types — factual, reflective naming the emotion, and reflective with **no emotion words and no content words reused** (mechanically enforced). Construction was pre-registered and the corpus frozen before any Persode strategy ran; the authored labels are never inputs to retrieval — E comes from the system's own analyzer, so the whole pipeline is tested against labels it never saw.
 
-recall@3, MiniLM embeddings ([`results/exp6_epirec.json`](results/exp6_epirec.json) has hashing + full strata):
+recall@3, MiniLM embeddings ([`results/exp6_epirec.json`](results/exp6_epirec.json) has hashing + full strata). The reproducible hashing run additionally publishes all 504 full rankings and EpiRec evaluator bootstrap CIs in [`results/exp6_epirec_rankings/`](results/exp6_epirec_rankings/):
 
 | Strategy | factual | reflective explicit | reflective implicit | overall |
 |---|---:|---:|---:|---:|

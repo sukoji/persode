@@ -25,8 +25,10 @@ Outputs:
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,7 +38,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+EXPERIMENTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(EXPERIMENTS_DIR))
+sys.path.insert(0, str(EXPERIMENTS_DIR.parent))
 import _style as style  # noqa: E402
 from persode.analyzer import SIGNIFICANCE_THRESHOLD, EventEmotionAnalyzer  # noqa: E402
 from persode.memory import Memory, MemoryStrengthScorer  # noqa: E402
@@ -103,7 +107,7 @@ def rank_ids(name: str, stores: dict, query: str) -> list[str]:
     return [r.memory.event for r in hits]
 
 
-def evaluate(embedder_name: str) -> dict:
+def evaluate(embedder_name: str) -> tuple[dict, dict[str, list[dict]]]:
     corpus = json.loads(DATA_PATH.read_text(encoding="utf-8"))
     now = datetime.fromisoformat(corpus["reference_now"])
     analyzer = EventEmotionAnalyzer()
@@ -111,6 +115,7 @@ def evaluate(embedder_name: str) -> dict:
 
     agg = {s: {t: {"r3": [], "r1": [], "mrr": []} for t in TYPES} for s in STRATEGIES}
     strat_band = {s: {} for s in STRATEGIES}  # reflective probes by intensity band
+    rankings = {s: [] for s in STRATEGIES}
     gate_fired = []
 
     for persona in corpus["personas"]:
@@ -121,6 +126,11 @@ def evaluate(embedder_name: str) -> dict:
                     gate_fired.append(query_is_significant(pr["query"]))
                 for s in STRATEGIES:
                     ranked = rank_ids(s, stores, pr["query"])
+                    rankings[s].append({
+                        "persona_id": persona["persona_id"],
+                        "probe_id": pr["id"],
+                        "ranked_episode_ids": ranked,
+                    })
                     rank = ranked.index(e["id"]) + 1
                     m = agg[s][pr["type"]]
                     m["r3"].append(float(rank <= 3))
@@ -144,21 +154,29 @@ def evaluate(embedder_name: str) -> dict:
             k: {"recall": round(float(np.mean(v)), 3), "n": len(v)}
             for k, v in sorted(strat_band[s].items())}
         out["strategies"][s] = res
-    return out
+    return out, rankings
 
 
-def main() -> None:
+def main(embedder_choice: str = "all") -> None:
     RESULTS.mkdir(exist_ok=True)
     if not DATA_PATH.exists():
         raise SystemExit(f"EpiRec corpus not found at {DATA_PATH} — clone "
                          "github.com/sukoji/epirec next to this repo or set EPIREC_PATH")
 
-    runs = {"hashing": evaluate("hashing")}
+    runs = {}
+    exported_rankings = {}
+    result, rankings = evaluate("hashing")
+    runs["hashing"] = result
+    exported_rankings["hashing"] = rankings
     try:
+        if embedder_choice == "hashing":
+            raise ImportError
         import sentence_transformers  # noqa: F401
-        runs["sentence-transformers"] = evaluate("sentence-transformers")
+        result, rankings = evaluate("sentence-transformers")
+        runs["sentence-transformers"] = result
+        exported_rankings["sentence-transformers"] = rankings
     except ImportError:
-        print("sentence-transformers not installed — semantic run skipped")
+        print("semantic run skipped")
 
     for emb, res in runs.items():
         print(f"\n=== embedder: {emb} ===  (gate fires on "
@@ -209,6 +227,24 @@ def main() -> None:
     (RESULTS / "exp6_epirec.json").write_text(json.dumps(payload, indent=2))
     print(f"saved {RESULTS / 'exp6_epirec.json'}")
 
+    # The frozen EpiRec evaluator is the source of record for published CIs.
+    evaluator = DATA_PATH.parent.parent / "scripts" / "evaluate_rankings.py"
+    ranking_dir = RESULTS / "exp6_epirec_rankings"
+    ranking_dir.mkdir(exist_ok=True)
+    if not evaluator.exists():
+        print("official EpiRec evaluator not found; raw rankings were still exported")
+    for embedder_name, by_strategy in exported_rankings.items():
+        for strategy, records in by_strategy.items():
+            slug = strategy.lower().replace(" ", "_").replace("(", "").replace(")", "")
+            rankings_path = ranking_dir / f"{embedder_name}_{slug}.jsonl"
+            rankings_path.write_text("\n".join(json.dumps(row) for row in records) + "\n", encoding="utf-8")
+            if evaluator.exists():
+                official_path = ranking_dir / f"{embedder_name}_{slug}.official.json"
+                subprocess.run([sys.executable, str(evaluator), "--rankings", str(rankings_path),
+                                "--output", str(official_path)], check=True)
+
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--embedder", choices=("all", "hashing", "sentence-transformers"), default="all")
+    main(parser.parse_args().embedder)

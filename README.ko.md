@@ -145,7 +145,7 @@ python experiments/exp5_locomo.py   # 첫 실행 시 데이터 다운로드
 
 Exp. 5 이후 남은 공백은 감정 현저성 라벨을 가진 공개 벤치마크가 없다는 것 — 감정 재부상 주장이 Exp. 3의 수작업 n = 10 시나리오에 의존했음. [EpiRec](https://github.com/sukoji/epirec)이 그 공백을 메움: 12 페르소나, 타임스탬프 달린 일기 에피소드 168개(강도/정서가 라벨 저작), probe 504개 — 사실형, 감정 명시 성찰형, 그리고 **감정 단어·내용어 재사용 없는**(기계 검증) 암시 성찰형. 제작은 사전 등록, 코퍼스는 Persode 전략 실행 전 동결; 저작 라벨은 검색에 입력되지 않음 — E는 시스템 자체 analyzer 산출이라, 파이프라인 전체가 한 번도 본 적 없는 라벨에 대해 시험됨.
 
-recall@3, MiniLM 임베딩 (해싱·전체 층은 [`results/exp6_epirec.json`](results/exp6_epirec.json)):
+recall@3, MiniLM 임베딩 (해싱·전체 층은 [`results/exp6_epirec.json`](results/exp6_epirec.json)). 재현 가능한 hashing 실행의 504개 full ranking과 EpiRec evaluator bootstrap CI는 [`results/exp6_epirec_rankings/`](results/exp6_epirec_rankings/)에 함께 공개:
 
 | 전략 | 사실형 | 성찰-명시 | 성찰-암시 | 전체 |
 |---|---:|---:|---:|---:|
