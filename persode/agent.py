@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from .analyzer import EventEmotionAnalyzer, EpisodeMetadata
+from .analyzer import SIGNIFICANCE_THRESHOLD, EventEmotionAnalyzer, EpisodeMetadata
 from .llm import LLMClient, OfflineLLM
 from .memory import Memory, MemoryStrengthScorer
 from .onboarding import OnboardingPreferences
@@ -93,11 +93,25 @@ class EpisodicMemoryAgent:
         )
         return self.store.add(memory)
 
+    # -- retrieval gate ----------------------------------------------------
+    def _retrieval_alpha(self, query: str) -> Optional[float]:
+        """Emotion gate for the Memory Selection Block.
+
+        Salience fusion exists to resurface emotionally significant episodes
+        during *reflective* dialogue; on factual lookups it only displaces
+        on-topic memories (measured on LoCoMo, Exp. 5). So: if the query itself
+        is emotionally significant (analyzer E ≥ SIGNIFICANCE_THRESHOLD), keep
+        the store's fusion weight; otherwise fall back to pure similarity.
+        """
+        E = self.analyzer.analyze(query).emotional_intensity
+        return None if E >= SIGNIFICANCE_THRESHOLD else 1.0
+
     # -- conversation (RAG) ----------------------------------------------
     def respond(self, user_input: str, top_k: int = 3,
                 now: Optional[datetime] = None) -> str:
         """Produce a memory-augmented, style-conditioned response."""
-        retrieved = self.store.retrieve(user_input, top_k=top_k, now=now)
+        retrieved = self.store.retrieve(user_input, top_k=top_k, now=now,
+                                        w_similarity=self._retrieval_alpha(user_input))
         memory_context = "\n".join(
             f"- {r.memory.event or r.memory.text} (emotion: {r.memory.emotion})"
             for r in retrieved
@@ -119,7 +133,8 @@ class EpisodicMemoryAgent:
         memory = self.ingest(utterance, now=now)
         # Retrieve related memories (excluding the one we just added would need
         # id filtering; here reinforcement is disabled to keep generation pure).
-        retrieved = self.store.retrieve(utterance, top_k=top_k, now=now, reinforce=False)
+        retrieved = self.store.retrieve(utterance, top_k=top_k, now=now, reinforce=False,
+                                        w_similarity=self._retrieval_alpha(utterance))
         related_events = [
             r.memory.event for r in retrieved
             if r.memory.id != memory.id and r.similarity < _RELATED_DEDUP_SIM

@@ -7,6 +7,7 @@
   },
   "protocol": {
     "note": "pre-registered: memory construction, strategies, metrics and QA inclusion rules fixed before any result was computed; shipped scorer/fusion defaults; adversarial category excluded a priori (unanswerable by design)",
+    "gate_provenance": "the gated strategy was ADDED after the initial run showed ungated fusion costs recall on factual QA; the gate rule itself (analyzer E >= 0.6, the repo's existing significance constant) was fixed before evaluating it and was not tuned on LoCoMo results",
     "alpha": 0.5,
     "top_ks": [
       5,
@@ -22,6 +23,10 @@
         "adversarial_cat5": 446,
         "no_evidence": 4,
         "unresolvable_evidence": 1
+      },
+      "gate": {
+        "rule": "fusion iff analyzer E >= 0.6 on the query",
+        "fused_fraction": 0.0287
       },
       "strategies": {
         "recency-only": {
@@ -147,6 +152,37 @@
             "n_conversations": 10
           },
           "query_count": 1535
+        },
+        "gated (Persode)": {
+          "evidence_recall@5": 0.1536,
+          "evidence_recall@10": 0.2139,
+          "hit@5": 0.1694,
+          "hit@10": 0.2384,
+          "mrr": 0.1361,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.0282,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.1872,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.0318,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.1962,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.1562,
+            "std": 0.0372,
+            "n_conversations": 10
+          },
+          "query_count": 1535
         }
       }
     },
@@ -155,6 +191,10 @@
         "adversarial_cat5": 446,
         "no_evidence": 4,
         "unresolvable_evidence": 1
+      },
+      "gate": {
+        "rule": "fusion iff analyzer E >= 0.6 on the query",
+        "fused_fraction": 0.0287
       },
       "strategies": {
         "recency-only": {
@@ -277,6 +317,37 @@
           "recall@5_by_conversation": {
             "mean": 0.302,
             "std": 0.0553,
+            "n_conversations": 10
+          },
+          "query_count": 1535
+        },
+        "gated (Persode)": {
+          "evidence_recall@5": 0.3535,
+          "evidence_recall@10": 0.4442,
+          "hit@5": 0.4026,
+          "hit@10": 0.5029,
+          "mrr": 0.2883,
+          "recall@5_by_category": {
+            "multi-hop": {
+              "recall": 0.1783,
+              "n": 282
+            },
+            "temporal": {
+              "recall": 0.4044,
+              "n": 320
+            },
+            "open-domain": {
+              "recall": 0.1694,
+              "n": 92
+            },
+            "single-hop": {
+              "recall": 0.413,
+              "n": 841
+            }
+          },
+          "recall@5_by_conversation": {
+            "mean": 0.352,
+            "std": 0.0664,
             "n_conversations": 10
           },
           "query_count": 1535

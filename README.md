@@ -84,7 +84,7 @@ python experiments/run_all.py
 | **2** | [Memory-strength scoring (Eq. 1)](experiments/exp2_memory_scoring.py) | Emotion-weighted scoring raises a month-old intense memory (`lost beloved dog`, E = 0.95) to **×2.6** its balanced value, 7th → 5th in the store. |
 | **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | Under lexically-distant probes, fusion (α = 0.5) lifts long-term emotional recall@3 to **0.60** vs **0.40** for pure similarity — at a disclosed cost on neutral/plain queries (see detail below). |
 | **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → diary + visual prompt; **24/24** onboarding attributes injected, prompts differ by profile, emotion-mood shared. |
-| **5** | [Public benchmark — LoCoMo](experiments/exp5_locomo.py) | Evidence retrieval over 1,535 QA / 5.9k turns: fused **0.30** vs similarity-only **0.35** recall@5 (MiniLM) — on *factual* QA the salience prior is a measured cost, bounding where fusion applies. |
+| **5** | [Public benchmark — LoCoMo](experiments/exp5_locomo.py) | 1,535 factual QA / 5.9k turns: ungated fusion costs recall (**0.30** vs **0.35** for pure RAG, recall@5 MiniLM) — so the agent **gates fusion by query emotion**, which restores parity (**0.35**) while keeping Exp. 3's emotional-resurfacing gains. |
 
 <p align="center">
   <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — forgetting curve">
@@ -100,12 +100,14 @@ The protocol is **pre-registered**: every hyperparameter is the system's shipped
 | recency-only | 0.30 | 0.00 | 0.30 |
 | similarity-only (pure RAG) | 0.30 | 0.40 | **1.00** |
 | salience-only (similarity-free) | 0.30 | 0.40 | 0.30 |
-| **fused (α = 0.5)** | **0.40** | **0.60** | 0.80 |
+| fused (α = 0.5, always) | **0.40** | **0.60** | 0.80 |
+| **gated (the agent: fusion iff query E ≥ 0.6)** | **0.40** | 0.40 | **1.00** |
 
 What fusion buys — and what it costs ([`results/exp3_retrieval.json`](results/exp3_retrieval.json)):
 
 - **The gain is scoped:** under lexical mismatch, fusion recovers long-term emotional episodes that pure similarity misses (0.60 vs 0.40) and recency can never reach (0.00).
 - **It is not a free win:** on plain probes pure similarity solves all 10 queries (1.00) while fusion drops two (0.80); under vague probes fusion loses the neutral-recent targets (0.00 vs 0.33) and pushes more emotional memories into neutral queries (intrusion 0.89 vs 0.67) — salience biases retrieval toward emotional content *by design*.
+- **The gate resolves the tradeoff where the analyzer can see the emotion:** the agent applies fusion only when the query itself is emotionally significant (offline analyzer E ≥ 0.6, the repo's existing significance constant). Gated retrieval keeps similarity's perfect plain-probe recall (1.00 vs fusion's 0.80), recovers the neutral-recent targets under vague probes (0.33 vs 0.00) and cuts intrusion back to similarity's level (0.67 vs 0.89). Its cost: the keyword analyzer cannot detect emotion in deliberately word-avoiding paraphrases, so two vague emotional queries slip through the gate to plain similarity (long-term emotional 0.40 vs 0.60 for always-on fusion) — with the paper's GPT-4o analyzer as the gate this coverage should improve; that remains untested here.
 - **α:** the long-term emotional bump (0.60) holds for α ∈ [0.45, 0.70]; both extremes fall back to 0.40. Note α = 0 is salience-*dominant*, not similarity-free — query similarity still enters the salience term via C; the similarity-free reference is the salience-only row.
 - **Embedder:** with a semantic embedder (`PERSODE_EMBEDDER=sentence-transformers`), pure RAG reaches recall 1.00 on both conditions — the recall gap above is an artifact of the lexical embedder. Salience's embedder-independent effect is *prioritization*: given two equally-relevant memories, fusion ranks the emotionally-significant one first (`salience_prioritization` in the JSON).
 - **Sample size:** n = 10 hand-labelled queries; one hit moves recall by 0.10. Read the gaps as deterministic mechanism checks, not population estimates.
@@ -123,22 +125,24 @@ python experiments/exp5_locomo.py   # downloads data on first run
 | Strategy | recall@5 (hashing) | recall@5 (MiniLM) | MRR (MiniLM) |
 |---|---:|---:|---:|
 | recency-only | 0.00 | 0.00 | 0.01 |
-| similarity-only (pure RAG) | **0.15** | **0.35** | **0.29** |
+| similarity-only (pure RAG) | 0.15 | 0.35 | 0.29 |
 | salience-only (similarity-free) | 0.01 | 0.01 | 0.02 |
-| fused (α = 0.5) | 0.13 | 0.30 | 0.26 |
+| fused (α = 0.5, always) | 0.13 | 0.30 | 0.26 |
+| **gated (the agent)** | **0.15** | **0.35** | **0.29** |
 
 <p align="center"><img src="results/exp5_locomo.png" width="88%" alt="Exp 5 — LoCoMo evidence retrieval"></p>
 
-What this bounds:
+What this shows:
 
-- **On factual QA, the salience prior is a cost, not a gain:** fusion trails pure similarity by ~15 % relative recall@5, consistently across both embedders, all four categories, and all 10 conversations (0.302 ± 0.055 vs 0.352 ± 0.068). LoCoMo questions ask *facts* ("When did Caroline…"), so weighting emotional salience into the ranking only displaces on-topic turns.
-- **Together with Exp. 3, this locates the mechanism:** salience fusion helps emotional *resurfacing* under lexically-vague reflective probes (its design target in a journaling agent) and hurts factual *lookup*. A production system should gate fusion by query type rather than apply it globally — noted as future work.
+- **On factual QA, always-on salience is a cost:** ungated fusion trails pure similarity by ~15 % relative recall@5, consistently across both embedders, all four categories, and all 10 conversations (0.302 ± 0.055 vs 0.352 ± 0.068). LoCoMo questions ask *facts* ("When did Caroline…"), so weighting emotional salience into the ranking only displaces on-topic turns.
+- **The emotion gate removes that cost:** the agent applies fusion only to emotionally significant queries (analyzer E ≥ 0.6 — 2.9 % of LoCoMo questions), and gated retrieval matches pure similarity to three decimals (0.3535 vs 0.3533 MiniLM; 0.154 vs 0.153 hashing — the flagged queries gain slightly from fusion). Together with Exp. 3 this completes the mechanism: fusion for emotional resurfacing, similarity for factual lookup, chosen per query by the system itself.
+- **Provenance, disclosed:** the gated strategy was added *after* the initial run exposed the ungated cost; the gate rule itself reuses the repo's pre-existing significance constant (E ≥ 0.6) and was fixed before evaluating it — nothing was tuned against LoCoMo results, and the ungated row stays reported.
 - **No ceiling anywhere:** the best configuration reaches 0.35 recall@5, in line with LoCoMo's reputation as a hard retrieval benchmark; nothing here is saturated or hand-picked.
 
 ## Tests
 
 ```bash
-python -m pytest    # 39 tests, no network
+python -m pytest    # 40 tests, no network
 ```
 
 Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and reinforcement, RAG-grounded responses, journal recall de-duplication, analyzer extraction, template determinism, and results-regression checks that pin every number above — including honesty guards that fail if fusion's costs (plain-probe and neutral-query losses, and the LoCoMo factual-QA gap) stop being reported. Two further tests need optional extras: the semantic embedder, and the downloaded LoCoMo data.
@@ -147,9 +151,9 @@ Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and r
 
 **Specified in the paper.** Eq. 1 Memory-Strength Scoring (§4.2); Ebbinghaus decay `d(Δt)=e^(−λΔt)` (§4.2); six-day / ~75 % short-term window (§3.2); Dual-Template framework (§3.3, §4.3); onboarding → persona and visual identity (§3.1, §4.1); Event-Emotion Analyzer and the RAG Memory Selection Block (§3.2).
 
-**Set in this code** (where the paper leaves values open). λ = ln 4⁄6 (from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)`, so salient memories persist past the short-term window; retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5 (note similarity also enters salience via C, so the effective similarity weight at α = 0.5 is ≈ 0.67 with equal weights); reinforcement on recall restarts the decay clock at `last_recalled` without rewriting the formation date (spaced repetition); offline lexicon / template / hashing stubs standing in for GPT-4o / DALL·E 3. The Exp. 3 evaluation protocol is pre-registered from these defaults — no hyperparameter or query selection against the results.
+**Set in this code** (where the paper leaves values open). λ = ln 4⁄6 (from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)`, so salient memories persist past the short-term window; retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5 (note similarity also enters salience via C, so the effective similarity weight at α = 0.5 is ≈ 0.67 with equal weights); an **emotion gate** on retrieval (fusion only when the query's analyzer E ≥ 0.6, else pure similarity — motivated by Exp. 5); reinforcement on recall restarts the decay clock at `last_recalled` without rewriting the formation date (spaced repetition); offline lexicon / template / hashing stubs standing in for GPT-4o / DALL·E 3. The Exp. 3 evaluation protocol is pre-registered from these defaults — no hyperparameter or query selection against the results.
 
-**Not included.** The user study (future work) and real image generation; the offline analyzer is keyword-based. Exp. 3's scenario is a small hand-labelled set (n = 10 queries) — Exp. 5 complements it with a public benchmark (LoCoMo, 1,535 QA), but no public dataset carries emotional-salience labels, so there E comes from the system's own analyzer and the emotional-resurfacing claim itself still rests on Exp. 3 and, ultimately, the future user study. Query-type gating of fusion (apply salience to reflective queries, plain similarity to factual ones) is future work.
+**Not included.** The user study (future work) and real image generation; the offline analyzer is keyword-based — which also bounds the emotion gate: it misses emotion in deliberately word-avoiding paraphrases (Exp. 3, vague condition), and gating through the paper's GPT-4o analyzer is untested here. Exp. 3's scenario is a small hand-labelled set (n = 10 queries) — Exp. 5 complements it with a public benchmark (LoCoMo, 1,535 QA), but no public dataset carries emotional-salience labels, so there E comes from the system's own analyzer and the emotional-resurfacing claim itself still rests on Exp. 3 and, ultimately, the future user study.
 
 ## Citation
 

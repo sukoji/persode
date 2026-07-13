@@ -59,6 +59,14 @@ def test_respond_grounds_in_retrieved_memory():
     assert "graduation" in reply.lower()
 
 
+def test_retrieval_gate_fuses_only_emotional_queries():
+    # Emotion gate: reflective/emotional queries keep salience fusion (None ->
+    # store default alpha); factual queries fall back to pure similarity (1.0).
+    agent = _agent_with()
+    assert agent._retrieval_alpha("I feel so proud and happy about graduating!") is None
+    assert agent._retrieval_alpha("What did I cook on Tuesday?") == 1.0
+
+
 def test_respond_reinforces_retrieved_memory():
     # Retrieval during conversation reinforces the recalled memory.
     m = Memory(text="I celebrated my graduation success",

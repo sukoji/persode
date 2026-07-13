@@ -33,6 +33,13 @@ EMOTION_LEXICON: Dict[str, Dict[str, Any]] = {
     "neutral":      {"keywords": [], "intensity": 0.2, "valence": 0},
 }
 
+# A memory or query counts as "emotionally significant" at or above this
+# intensity — the paper's "significant event" bar. Also used by the retrieval
+# gate: emotionally significant queries get salience fusion, factual ones get
+# pure similarity (motivated by Exp. 5: the salience prior costs recall on
+# factual QA).
+SIGNIFICANCE_THRESHOLD = 0.6
+
 # Intensity amplifiers — exclamation, ALL CAPS, and boosters raise arousal.
 _BOOSTERS = ["really", "so", "very", "extremely", "truly", "deeply", "completely", "all"]
 _STOPWORDS = set("""a an the this that these those i you he she it we they me my your his her our their

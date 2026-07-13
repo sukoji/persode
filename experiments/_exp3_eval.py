@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
+from persode.analyzer import SIGNIFICANCE_THRESHOLD, EventEmotionAnalyzer
 from persode.embeddings import cosine_similarity, get_embedder
 from persode.memory import MemoryStrengthScorer
 from persode.store import MemoryStore
@@ -50,7 +51,14 @@ class Exp3Config:
     paraphrase: str = "vague"
 
 
-STRATEGIES = ("recency-only", "similarity-only", "salience-only", "fused (Persode)")
+STRATEGIES = ("recency-only", "similarity-only", "salience-only",
+              "fused (Persode)", "gated (Persode)")
+
+
+@lru_cache(maxsize=512)
+def query_is_significant(query: str) -> bool:
+    """The agent's emotion gate: analyzer E ≥ SIGNIFICANCE_THRESHOLD."""
+    return EventEmotionAnalyzer().analyze(query).emotional_intensity >= SIGNIFICANCE_THRESHOLD
 
 
 @lru_cache(maxsize=1)
@@ -93,7 +101,14 @@ def _ranked_events(name: str, cfg: Exp3Config, query: str) -> list[str]:
         hits = store.retrieve(query, top_k=len(store), now=NOW, reinforce=False,
                               use_query_relevance_as_context=False)
         return [r.memory.event for r in hits]
-    alpha = 1.0 if name == "similarity-only" else cfg.alpha
+    if name == "similarity-only":
+        alpha = 1.0
+    elif name == "gated (Persode)":
+        # The agent's emotion gate (agent._retrieval_alpha): fusion for
+        # emotionally significant queries, pure similarity for factual ones.
+        alpha = cfg.alpha if query_is_significant(query) else 1.0
+    else:
+        alpha = cfg.alpha
     store = build_store(cfg, alpha)
     hits = store.retrieve(query, top_k=len(store), now=NOW, reinforce=False)
     return [r.memory.event for r in hits]

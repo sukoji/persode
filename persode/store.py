@@ -99,6 +99,7 @@ class MemoryStore:
         now: Optional[datetime] = None,
         reinforce: bool = True,
         use_query_relevance_as_context: bool = True,
+        w_similarity: Optional[float] = None,
     ) -> List[RetrievalResult]:
         """Retrieve the top-k memories fusing similarity with memory salience.
 
@@ -121,6 +122,10 @@ class MemoryStore:
         ``use_query_relevance_as_context=False`` for a fusion whose salience
         term is fully similarity-free (the memory's stored C is used instead).
 
+        ``w_similarity`` overrides the store's fusion weight α for this call
+        only — this is how the agent's emotion gate switches between fusion
+        (reflective queries) and pure similarity (factual queries).
+
         The full decayed strength is still reported as ``retention`` for
         transparency. When ``reinforce`` is true, every returned memory is marked
         as recalled, modelling the reinforcement of significant memories.
@@ -128,6 +133,7 @@ class MemoryStore:
         now = now or datetime.now(timezone.utc)
         if not self._memories:
             return []
+        alpha = self.w_similarity if w_similarity is None else float(w_similarity)
 
         q = self.embedder.embed(query)
         results: List[RetrievalResult] = []
@@ -137,7 +143,7 @@ class MemoryStore:
             context_rel = sim if use_query_relevance_as_context else None
             salience = self.scorer.base_salience(m, context_relevance=context_rel)
             retention = self.scorer.score(m, now=now, context_relevance=context_rel)
-            fused = self.w_similarity * sim + (1.0 - self.w_similarity) * salience
+            fused = alpha * sim + (1.0 - alpha) * salience
             results.append(
                 RetrievalResult(
                     memory=m,

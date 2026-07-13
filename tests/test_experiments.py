@@ -85,18 +85,26 @@ def test_exp3_vague_condition_headline():
     assert round(s["similarity-only"]["target_recall"], 2) == 0.30
     assert round(s["salience-only"]["target_recall"], 2) == 0.30
     assert round(s["fused (Persode)"]["target_recall"], 2) == 0.40
+    assert round(s["gated (Persode)"]["target_recall"], 2) == 0.40
     # The mechanism-specific gain: long-term emotional recall under lexical mismatch.
     assert round(s["similarity-only"]["recall_by_category"]["emotional_long"], 2) == 0.40
     assert round(s["fused (Persode)"]["recall_by_category"]["emotional_long"], 2) == 0.60
     assert round(s["recency-only"]["recall_by_category"]["emotional_long"], 2) == 0.00
+    # Gate recovers neutral-recent and cuts intrusion back to similarity's level —
+    # at the cost of vague emotional queries the keyword analyzer cannot flag.
+    assert round(s["gated (Persode)"]["recall_by_category"]["neutral_recent"], 2) == 0.33
+    assert round(s["gated (Persode)"]["recall_by_category"]["emotional_long"], 2) == 0.40
+    assert s["gated (Persode)"]["emotional_intrusion"] == s["similarity-only"]["emotional_intrusion"]
 
 
 def test_exp3_plain_condition_and_tradeoffs():
     # Honesty guards: fusion is NOT a free win and the README must say so.
     plain = eval_all(Exp3Config(paraphrase="default"))
-    # With plainly-worded probes, pure similarity solves everything; fusion costs recall.
+    # With plainly-worded probes, pure similarity solves everything; always-on
+    # fusion costs recall; the emotion gate restores the perfect score.
     assert round(plain["similarity-only"]["target_recall"], 2) == 1.00
     assert round(plain["fused (Persode)"]["target_recall"], 2) == 0.80
+    assert round(plain["gated (Persode)"]["target_recall"], 2) == 1.00
     # Under vague probes, fusion sacrifices neutral-recent recall...
     vague = eval_all(Exp3Config())
     assert vague["fused (Persode)"]["recall_by_category"]["neutral_recent"] \
@@ -166,11 +174,17 @@ def test_exp5_locomo_headline_and_honesty():
     assert s["fused (Persode)"]["query_count"] == 1535
     assert round(s["similarity-only"]["evidence_recall@5"], 3) == 0.152
     assert round(s["fused (Persode)"]["evidence_recall@5"], 3) == 0.135
+    assert round(s["gated (Persode)"]["evidence_recall@5"], 3) == 0.154
     assert round(s["salience-only"]["evidence_recall@5"], 3) == 0.011
     assert round(s["recency-only"]["evidence_recall@5"], 3) == 0.002
-    # Honesty guard: the factual-QA cost of fusion is real and stays visible.
+    # Honesty guard: the factual-QA cost of ungated fusion is real and stays visible.
     assert s["fused (Persode)"]["evidence_recall@5"] < s["similarity-only"]["evidence_recall@5"]
     assert s["fused (Persode)"]["mrr"] < s["similarity-only"]["mrr"]
+    # The emotion gate removes that cost (parity with pure similarity or better).
+    assert s["gated (Persode)"]["evidence_recall@5"] >= s["similarity-only"]["evidence_recall@5"]
+    assert s["gated (Persode)"]["evidence_recall@5"] > s["fused (Persode)"]["evidence_recall@5"]
+    # The gate fires on a small emotional minority of factual-benchmark queries.
+    assert 0.0 < res["gate"]["fused_fraction"] < 0.10
     # Exclusions are accounted for, never silent.
     assert res["excluded"] == {"adversarial_cat5": 446, "no_evidence": 4,
                                "unresolvable_evidence": 1}

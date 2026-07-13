@@ -60,7 +60,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _style as style  # noqa: E402
-from persode.analyzer import EventEmotionAnalyzer  # noqa: E402
+from persode.analyzer import SIGNIFICANCE_THRESHOLD, EventEmotionAnalyzer  # noqa: E402
 from persode.embeddings import BaseEmbedder, get_embedder  # noqa: E402
 from persode.memory import Memory, MemoryStrengthScorer  # noqa: E402
 from persode.store import MemoryStore  # noqa: E402
@@ -142,19 +142,39 @@ def parse_evidence(raw, valid_ids: set) -> list[str]:
     return [t for t in dict.fromkeys(tokens) if t in valid_ids]
 
 
+_GATE_ANALYZER = EventEmotionAnalyzer()
+_GATE_CACHE: dict[str, bool] = {}
+
+
+def query_is_significant(query: str) -> bool:
+    """The agent's emotion gate: analyzer E ≥ SIGNIFICANCE_THRESHOLD."""
+    v = _GATE_CACHE.get(query)
+    if v is None:
+        v = _GATE_ANALYZER.analyze(query).emotional_intensity >= SIGNIFICANCE_THRESHOLD
+        _GATE_CACHE[query] = v
+    return v
+
+
 def rank_ids(name: str, store: dict, query: str) -> list[str]:
     """Full ranking of dia_ids under one strategy, via MemoryStore.retrieve."""
     if name == "recency-only":
         return store["recency_ranking"]
-    st: MemoryStore = store[name]
     kwargs = {}
-    if name == "salience-only":
-        kwargs["use_query_relevance_as_context"] = False
+    if name == "gated (Persode)":
+        # The agent's emotion gate (agent._retrieval_alpha): fusion only for
+        # emotionally significant queries, pure similarity otherwise.
+        st: MemoryStore = store["fused (Persode)"]
+        kwargs["w_similarity"] = ALPHA if query_is_significant(query) else 1.0
+    else:
+        st = store[name]
+        if name == "salience-only":
+            kwargs["use_query_relevance_as_context"] = False
     hits = st.retrieve(query, top_k=len(st), now=store["now"], reinforce=False, **kwargs)
     return [r.memory.event for r in hits]
 
 
-STRATEGIES = ("recency-only", "similarity-only", "salience-only", "fused (Persode)")
+STRATEGIES = ("recency-only", "similarity-only", "salience-only",
+              "fused (Persode)", "gated (Persode)")
 
 
 def build_stores(memories, now, embedder) -> dict:
@@ -177,6 +197,7 @@ def evaluate(embedder_name: str) -> dict:
     embedder = CachedEmbedder(get_embedder(embedder_name))
 
     excluded = {"adversarial_cat5": 0, "no_evidence": 0, "unresolvable_evidence": 0}
+    gate_flags: list[bool] = []
     agg = {s: {"recall": {k: [] for k in TOP_KS}, "hit": {k: [] for k in TOP_KS},
                "mrr": [], "by_cat": {c: [] for c in CATEGORY_NAMES},
                "by_conv": {}} for s in STRATEGIES}
@@ -199,6 +220,7 @@ def evaluate(embedder_name: str) -> dict:
                 excluded["unresolvable_evidence"] += 1
                 continue
             cat = int(q["category"])
+            gate_flags.append(query_is_significant(q["question"]))
 
             for s in STRATEGIES:
                 ranked = rank_ids(s, stores, q["question"])
@@ -213,7 +235,14 @@ def evaluate(embedder_name: str) -> dict:
                 agg[s]["by_conv"].setdefault(conv_id, []).append(
                     len(gold_set & set(ranked[:PRIMARY_K])) / len(gold_set))
 
-    out = {"excluded": excluded, "strategies": {}}
+    out = {
+        "excluded": excluded,
+        "gate": {
+            "rule": f"fusion iff analyzer E >= {SIGNIFICANCE_THRESHOLD} on the query",
+            "fused_fraction": round(sum(gate_flags) / len(gate_flags), 4) if gate_flags else None,
+        },
+        "strategies": {},
+    }
     for s in STRATEGIES:
         a = agg[s]
         conv_means = [mean(v) for v in a["by_conv"].values()]
@@ -302,6 +331,11 @@ def main() -> None:
                     "QA inclusion rules fixed before any result was computed; "
                     "shipped scorer/fusion defaults; adversarial category excluded "
                     "a priori (unanswerable by design)",
+            "gate_provenance": "the gated strategy was ADDED after the initial run "
+                               "showed ungated fusion costs recall on factual QA; "
+                               "the gate rule itself (analyzer E >= 0.6, the repo's "
+                               "existing significance constant) was fixed before "
+                               "evaluating it and was not tuned on LoCoMo results",
             "alpha": ALPHA,
             "top_ks": list(TOP_KS),
             "primary_k": PRIMARY_K,
