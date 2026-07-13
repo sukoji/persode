@@ -190,6 +190,31 @@ def test_exp5_locomo_headline_and_honesty():
                                "unresolvable_evidence": 1}
 
 
+def test_exp6_epirec_headline_and_honesty():
+    # Pins the EpiRec hashing-embedder numbers and the honesty guards: the gate
+    # holds parity with pure similarity, and always-on fusion's across-the-board
+    # loss (no resurfacing gain with keyword E) stays reported.
+    # Skips when the EpiRec corpus is not checked out next to this repo.
+    import pytest
+    import exp6_epirec as X
+    if not X.DATA_PATH.exists():
+        pytest.skip("EpiRec corpus not found (clone github.com/sukoji/epirec)")
+
+    res = X.evaluate("hashing")
+    s = res["strategies"]
+    assert round(s["similarity-only"]["overall"]["r3"], 3) == 0.552
+    assert round(s["fused (Persode)"]["overall"]["r3"], 3) == 0.518
+    assert round(s["gated (Persode)"]["overall"]["r3"], 3) == 0.550
+    assert round(s["recency-only"]["overall"]["r3"], 3) == 0.214
+    # Honesty: always-on fusion loses on every probe type; gate ~ parity.
+    for t in ("factual", "reflective_explicit", "reflective_implicit"):
+        assert s["fused (Persode)"][t]["r3"] < s["similarity-only"][t]["r3"] + 1e-9
+        assert abs(s["gated (Persode)"][t]["r3"] - s["similarity-only"][t]["r3"]) < 0.02
+    # Difficulty gradient the benchmark is built around.
+    sim = s["similarity-only"]
+    assert sim["factual"]["r3"] > sim["reflective_explicit"]["r3"] > sim["reflective_implicit"]["r3"]
+
+
 def test_exp4_personalization_is_verified():
     # The onboarding -> visual personalization claim, quantified: every onboarding
     # attribute is injected, the two profiles differ, and they share the emotion mood.

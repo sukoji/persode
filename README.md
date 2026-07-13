@@ -85,6 +85,7 @@ python experiments/run_all.py
 | **3** | [Salience-aware retrieval](experiments/exp3_retrieval.py) | Under lexically-distant probes, fusion (α = 0.5) lifts long-term emotional recall@3 to **0.60** vs **0.40** for pure similarity — at a disclosed cost on neutral/plain queries (see detail below). |
 | **4** | [Dual-Template generation](experiments/exp4_visual_prompt.py) | One utterance → diary + visual prompt; **24/24** onboarding attributes injected, prompts differ by profile, emotion-mood shared. |
 | **5** | [Public benchmark — LoCoMo](experiments/exp5_locomo.py) | 1,535 factual QA / 5.9k turns: ungated fusion costs recall (**0.30** vs **0.35** for pure RAG, recall@5 MiniLM) — so the agent **gates fusion by query emotion**, which restores parity (**0.35**) while keeping Exp. 3's emotional-resurfacing gains. |
+| **6** | [EpiRec — labeled benchmark](experiments/exp6_epirec.py) | On [EpiRec](https://github.com/sukoji/epirec) (504 probes, authored emotion labels, corpus frozen before evaluation): the gate holds parity with pure RAG (**0.84** overall recall@3), but always-on fusion loses on *every* stratum — with the keyword analyzer's E, no measurable resurfacing gain survives at scale. Open problem, honestly recorded. |
 
 <p align="center">
   <img src="results/exp1_forgetting_curve.png" width="49%" alt="Exp 1 — forgetting curve">
@@ -139,6 +140,21 @@ What this shows:
 - **Provenance, disclosed:** the gated strategy was added *after* the initial run exposed the ungated cost; the gate rule itself reuses the repo's pre-existing significance constant (E ≥ 0.6) and was fixed before evaluating it — nothing was tuned against LoCoMo results, and the ungated row stays reported.
 - **No ceiling anywhere:** the best configuration reaches 0.35 recall@5, in line with LoCoMo's reputation as a hard retrieval benchmark; nothing here is saturated or hand-picked.
 
+### Exp. 6 — EpiRec: the resurfacing claim on labeled, held-out data
+
+The remaining gap after Exp. 5 was that no public benchmark carries emotional-salience labels, so the emotional-resurfacing claim rested on Exp. 3's hand-made n = 10 scenario. [EpiRec](https://github.com/sukoji/epirec) closes it: 12 personas, 168 timestamped journal episodes with authored intensity/valence labels, 504 probes in three types — factual, reflective naming the emotion, and reflective with **no emotion words and no content words reused** (mechanically enforced). Construction was pre-registered and the corpus frozen before any Persode strategy ran; the authored labels are never inputs to retrieval — E comes from the system's own analyzer, so the whole pipeline is tested against labels it never saw.
+
+recall@3, MiniLM embeddings ([`results/exp6_epirec.json`](results/exp6_epirec.json) has hashing + full strata):
+
+| Strategy | factual | reflective explicit | reflective implicit | overall |
+|---|---:|---:|---:|---:|
+| similarity-only (pure RAG) | 1.00 | 0.88 | **0.66** | **0.84** |
+| fused (α = 0.5, always) | 0.99 | 0.82 | 0.60 | 0.80 |
+| **gated (the agent)** | 1.00 | 0.87 | **0.66** | **0.84** |
+
+- **The gate does its job at scale**: parity with pure similarity on all three probe types (gate fires on 13 % of reflective probes).
+- **The honest headline is negative**: always-on fusion loses on every stratum — *including* high-intensity emotional episodes (implicit-high 0.60 vs 0.63), the exact case it was designed for. Exp. 3's small-scale resurfacing gain does not replicate on independent data when E comes from the keyword analyzer: the salience prior needs a better emotion estimator (e.g., the paper's GPT-4o analyzer) to earn its keep. That is now the system's documented open problem, and EpiRec's implicit stratum (best method 0.66) is the headroom to close.
+
 ## Tests
 
 ```bash
@@ -153,7 +169,7 @@ Cover decay calibration, Eq. 1 scoring and consolidation, retrieval fusion and r
 
 **Set in this code** (where the paper leaves values open). λ = ln 4⁄6 (from the 6-day / 25 % anchor); consolidation `λ_eff = λ·(1 − γ·k)`, so salient memories persist past the short-term window; retrieval fusion `α·similarity + (1−α)·salience`, α = 0.5 (note similarity also enters salience via C, so the effective similarity weight at α = 0.5 is ≈ 0.67 with equal weights); an **emotion gate** on retrieval (fusion only when the query's analyzer E ≥ 0.6, else pure similarity — motivated by Exp. 5); reinforcement on recall restarts the decay clock at `last_recalled` without rewriting the formation date (spaced repetition); offline lexicon / template / hashing stubs standing in for GPT-4o / DALL·E 3. The Exp. 3 evaluation protocol is pre-registered from these defaults — no hyperparameter or query selection against the results.
 
-**Not included.** The user study (future work) and real image generation; the offline analyzer is keyword-based — which also bounds the emotion gate: it misses emotion in deliberately word-avoiding paraphrases (Exp. 3, vague condition), and gating through the paper's GPT-4o analyzer is untested here. Exp. 3's scenario is a small hand-labelled set (n = 10 queries) — Exp. 5 complements it with a public benchmark (LoCoMo, 1,535 QA), but no public dataset carries emotional-salience labels, so there E comes from the system's own analyzer and the emotional-resurfacing claim itself still rests on Exp. 3 and, ultimately, the future user study.
+**Not included.** The user study (future work) and real image generation; the offline analyzer is keyword-based — which bounds both the emotion gate (it misses emotion in word-avoiding paraphrases) and, per Exp. 6, the salience prior itself: on EpiRec's labeled corpus, fusion driven by keyword-derived E shows no resurfacing gain over pure similarity, so the mechanism's value is currently conditional on a stronger E estimator (the paper's GPT-4o analyzer — untested here). The definitive test of the journaling experience remains the future user study.
 
 ## Citation
 

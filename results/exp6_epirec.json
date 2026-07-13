@@ -1,0 +1,512 @@
+{
+  "benchmark": {
+    "name": "EpiRec v1.0",
+    "url": "https://github.com/sukoji/epirec",
+    "probes": 504,
+    "personas": 12
+  },
+  "protocol": {
+    "note": "pre-registered (EpiRec GENERATION_SPEC.md); corpus frozen before any strategy ran; authored labels never fed to retrieval \u2014 E comes from the system's own analyzer",
+    "alpha": 0.5,
+    "top_k_primary": 3,
+    "stored_C": 0.5
+  },
+  "runs": {
+    "hashing": {
+      "strategies": {
+        "recency-only": {
+          "factual": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_explicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_implicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "overall": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.139,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.288,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.243,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.139,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.288,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.243,
+              "n": 37
+            }
+          }
+        },
+        "similarity-only": {
+          "factual": {
+            "r3": 0.857,
+            "r1": 0.679,
+            "mrr": 0.784
+          },
+          "reflective_explicit": {
+            "r3": 0.488,
+            "r1": 0.238,
+            "mrr": 0.421
+          },
+          "reflective_implicit": {
+            "r3": 0.31,
+            "r1": 0.06,
+            "mrr": 0.255
+          },
+          "overall": {
+            "r3": 0.552,
+            "r1": 0.325,
+            "mrr": 0.486
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.542,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.373,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.568,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.306,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.305,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.324,
+              "n": 37
+            }
+          }
+        },
+        "salience-only": {
+          "factual": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_explicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_implicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "overall": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.194,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.254,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.189,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.194,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.254,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.189,
+              "n": 37
+            }
+          }
+        },
+        "fused (Persode)": {
+          "factual": {
+            "r3": 0.827,
+            "r1": 0.583,
+            "mrr": 0.722
+          },
+          "reflective_explicit": {
+            "r3": 0.435,
+            "r1": 0.196,
+            "mrr": 0.379
+          },
+          "reflective_implicit": {
+            "r3": 0.292,
+            "r1": 0.071,
+            "mrr": 0.252
+          },
+          "overall": {
+            "r3": 0.518,
+            "r1": 0.284,
+            "mrr": 0.451
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.444,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.373,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.514,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.292,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.288,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.297,
+              "n": 37
+            }
+          }
+        },
+        "gated (Persode)": {
+          "factual": {
+            "r3": 0.851,
+            "r1": 0.679,
+            "mrr": 0.782
+          },
+          "reflective_explicit": {
+            "r3": 0.488,
+            "r1": 0.232,
+            "mrr": 0.418
+          },
+          "reflective_implicit": {
+            "r3": 0.31,
+            "r1": 0.065,
+            "mrr": 0.259
+          },
+          "overall": {
+            "r3": 0.55,
+            "r1": 0.325,
+            "mrr": 0.486
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.528,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.39,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.568,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.306,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.305,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.324,
+              "n": 37
+            }
+          }
+        }
+      },
+      "gate": {
+        "rule": "fusion iff analyzer E >= 0.6 on the query",
+        "reflective_fused_fraction": 0.131
+      }
+    },
+    "sentence-transformers": {
+      "strategies": {
+        "recency-only": {
+          "factual": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_explicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_implicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "overall": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.139,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.288,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.243,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.139,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.288,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.243,
+              "n": 37
+            }
+          }
+        },
+        "similarity-only": {
+          "factual": {
+            "r3": 1.0,
+            "r1": 0.935,
+            "mrr": 0.965
+          },
+          "reflective_explicit": {
+            "r3": 0.875,
+            "r1": 0.655,
+            "mrr": 0.773
+          },
+          "reflective_implicit": {
+            "r3": 0.655,
+            "r1": 0.375,
+            "mrr": 0.552
+          },
+          "overall": {
+            "r3": 0.843,
+            "r1": 0.655,
+            "mrr": 0.763
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.903,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.797,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.946,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.625,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.712,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.622,
+              "n": 37
+            }
+          }
+        },
+        "salience-only": {
+          "factual": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_explicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_implicit": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "overall": {
+            "r3": 0.214,
+            "r1": 0.071,
+            "mrr": 0.232
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.194,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.254,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.189,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.194,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.254,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.189,
+              "n": 37
+            }
+          }
+        },
+        "fused (Persode)": {
+          "factual": {
+            "r3": 0.994,
+            "r1": 0.857,
+            "mrr": 0.921
+          },
+          "reflective_explicit": {
+            "r3": 0.821,
+            "r1": 0.542,
+            "mrr": 0.697
+          },
+          "reflective_implicit": {
+            "r3": 0.595,
+            "r1": 0.274,
+            "mrr": 0.48
+          },
+          "overall": {
+            "r3": 0.804,
+            "r1": 0.558,
+            "mrr": 0.7
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.875,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.712,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.892,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.597,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.576,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.622,
+              "n": 37
+            }
+          }
+        },
+        "gated (Persode)": {
+          "factual": {
+            "r3": 1.0,
+            "r1": 0.929,
+            "mrr": 0.962
+          },
+          "reflective_explicit": {
+            "r3": 0.869,
+            "r1": 0.607,
+            "mrr": 0.748
+          },
+          "reflective_implicit": {
+            "r3": 0.655,
+            "r1": 0.381,
+            "mrr": 0.555
+          },
+          "overall": {
+            "r3": 0.841,
+            "r1": 0.639,
+            "mrr": 0.755
+          },
+          "reflective_recall3_by_band": {
+            "reflective_explicit\u00b7high": {
+              "recall": 0.889,
+              "n": 72
+            },
+            "reflective_explicit\u00b7low": {
+              "recall": 0.797,
+              "n": 59
+            },
+            "reflective_explicit\u00b7mild": {
+              "recall": 0.946,
+              "n": 37
+            },
+            "reflective_implicit\u00b7high": {
+              "recall": 0.625,
+              "n": 72
+            },
+            "reflective_implicit\u00b7low": {
+              "recall": 0.712,
+              "n": 59
+            },
+            "reflective_implicit\u00b7mild": {
+              "recall": 0.622,
+              "n": 37
+            }
+          }
+        }
+      },
+      "gate": {
+        "rule": "fusion iff analyzer E >= 0.6 on the query",
+        "reflective_fused_fraction": 0.131
+      }
+    }
+  }
+}
