@@ -1,5 +1,3 @@
-**English** | [한국어](README.ko.md)
-
 **English** | [한국어](README.ko.md) | [中文](README.zh-CN.md)
 
 <div align="center">
